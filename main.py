@@ -16,26 +16,12 @@ T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 """
 
-import pymysql
-import sys
-
-import config
-reload(config)
-
-sys.path.append(config.configLocalPathS)
-import config_local
-reload(config_local)
-    
+import mysql_
+reload(mysql_)
 
 
-def connect_to_mysql():
-    """
-    Connection code from http://zetcode.com/db/mysqlpython/, 2014-05-18
-    """
-    
-    try:
-        con = pymysql.connect(user='root', passwd=config_local.pwordS)
-        return con
-        
-    except pymysql.Error, e:
-        print 'Error %d: %s' % (e.args[0], e.args[1])
+
+def main():
+    con = mysql_.connect_to_mysql()
+    if con:
+        print('Success!')
