@@ -36,12 +36,14 @@ def main():
                                  'US_elect_county__2012.csv')
         cur = con.cursor()
         cur.execute('DROP TABLE IF EXISTS election2012')
-        mysqlS = ("LOAD DATA LOCAL INFILE " + filePathS +
-                 " INTO TABLE election2012 " +
-                 "FIELDS TERMINATED BY ',' " +
-                 "LINES TERMINATED BY '\r\n' " +
-                 "IGNORE 2 LINES;")
-        cur.execute(mysqlS)
+        mysqlS = """
+                 LOAD DATA LOCAL INFILE {filePathS}
+                 INTO TABLE election2012
+                 FIELDS TERMINATED BY ','
+                 LINES TERMINATED BY '\r\n'
+                 IGNORE 2 LINES;
+                 """
+        cur.execute(mysqlS.format(filePathS=filePathS))
         cur.execute('SELECT * FROM election2012')
         for lRow in range(5):
             row = cur.fetchone()
