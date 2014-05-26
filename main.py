@@ -14,6 +14,9 @@ L: list
 S: string
 T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
+
+
+2014-05-25: Why isn't the print command working in election2012?
 """
 
 import mysql_
