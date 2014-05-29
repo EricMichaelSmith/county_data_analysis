@@ -15,15 +15,9 @@ S: string
 T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 
-2014-05-25: Why isn't the print command working in election2012?
+2014-05-28: Okay, just try loading the data with the csv reader one line at a time into MySQL... it'll probably be slower, but hopefully it should actually work.
 """
-
-import mysql_
-reload(mysql_)
 
 
 
 def main():
-    con = mysql_.connect_to_mysql()
-    if con:
-        print('Success!')
