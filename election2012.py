@@ -30,12 +30,15 @@ reload(config_local)
 
 def main():
 
-    con = pymysql.connect(user='root', passwd=config_local.pwordS, db='sudointellectual')
+    con = pymysql.connect(user='root',
+                          passwd=config_local.pwordS,
+                          db='sudointellectual',
+                          local_infile=1)
+    cur = con.cursor()
 
     # Read in 2012 election data
-    filePathS = '///' + os.path.join(config.rawDataPathS, 'election_statistics',
+    filePathS = os.path.join(config.rawDataPathS, 'election_statistics',
                              'US_elect_county__2012.csv')
-    cur = con.cursor()
     cur.execute('DROP TABLE IF EXISTS election2012')
 #    mysqlS = """
 #             LOAD DATA LOCAL INFILE {filePathS}
