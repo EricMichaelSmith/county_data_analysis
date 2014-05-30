@@ -15,7 +15,7 @@ S: string
 T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 
-2014-05-28: Okay, just try loading the data with the csv reader one line at a time into MySQL... it'll probably be slower, but hopefully it should actually work.
+2014-05-30: Figure out how to ignore certain columns in MySQL; then, figure out which columns you want in election2012 and load only those. Do this with all of your files.
 """
 
 

@@ -15,8 +15,8 @@ T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 """
 
+import MySQLdb
 import os
-import pymysql
 import sys
 
 import config
@@ -30,7 +30,7 @@ reload(config_local)
 
 def main():
 
-    con = pymysql.connect(user='root',
+    con = MySQLdb.connect(user='root',
                           passwd=config_local.pwordS,
                           db='sudointellectual',
                           local_infile=1)
@@ -40,19 +40,22 @@ def main():
     filePathS = os.path.join(config.rawDataPathS, 'election_statistics',
                              'US_elect_county__2012.csv')
     cur.execute('DROP TABLE IF EXISTS election2012')
+    cur.execute('CREATE TABLE election2012(myindex INT PRIMARY KEY AUTO_INCREMENT, un VARCHAR(25), deux VARCHAR(25), trois VARCHAR(25))')
 #    mysqlS = """
 #             LOAD DATA LOCAL INFILE {filePathS}
 #             INTO TABLE election2012
 #             FIELDS TERMINATED BY ','
 #             LINES TERMINATED BY '\r\n'
-#             IGNORE 2 LINES;
+#             IGNORE 1 LINES
+#             (column1, column2);
 #             """
 #    cur.execute(mysqlS.format(filePathS=filePathS))
-    mysqlS = """
-             LOAD DATA LOCAL INFILE 'US_elect_county__2012.csv'
-             INTO TABLE election2012;
-             """
-    cur.execute(mysqlS)
+    cur.execute("LOAD DATA LOCAL INFILE 'foo.csv' INTO TABLE election2012 FIELDS TERMINATED BY ',' LINES TERMINATED BY '\r\n' (un, deux, trois)")
+#    mysqlS = """
+#             LOAD DATA LOCAL INFILE 'US_elect_county__2012.csv'
+#             INTO TABLE election2012;
+#             """
+#    cur.execute(mysqlS)
     cur.execute('SELECT * FROM election2012')
     for lRow in range(5):
         row = cur.fetchone()
