@@ -15,7 +15,7 @@ S: string
 T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 
-2014-05-30: Figure out how to ignore certain columns in MySQL; then, figure out which columns you want in election2012 and load only those. Do this with all of your files. Also, probably use additional arguments in cursor.execute() because that's suppose to avoid SQL injections
+2014-05-30: Figure out how to ignore certain columns in MySQL; then, figure out which columns you want in election2012 and load only those. Do this with all of your files.
 """
 
 
