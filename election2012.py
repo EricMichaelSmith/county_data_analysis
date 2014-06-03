@@ -26,6 +26,9 @@ sys.path.append(config.configLocalPathS)
 import config_local
 reload(config_local)
 
+sys.path.append(os.path.join(config.packagePathS, 'richardpenman-csv2mysql-5d059a4361fb'))
+import csv2mysql
+
 
 
 def main():
@@ -60,3 +63,11 @@ def main():
     for lRow in range(5):
         row = cur.fetchone()
         print row
+        
+        
+
+def testing_csv_import():
+    filePathS = os.path.join(config.rawDataPathS, 'election_statistics',
+                             'US_elect_county__2012.csv')
+    csv2mysql.main(filePathS, 'root', config_local.pwordS, 'localhost',
+                   'election2012', 'sudointellectual')

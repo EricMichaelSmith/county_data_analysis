@@ -15,7 +15,7 @@ S: string
 T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 
-2014-05-31: Play around more with csv2mysql.py. Previous error: _mysql_exceptions.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'varchar(255),\ncounty_number integer,\nfips_code integer,\ncounty_name varchar(255)' at line 4"). Also, probably use additional arguments in cursor.execute() because that's suppose to avoid SQL injections.
+2014-06-03: Play around more with csv2mysql.py. Previous error: _mysql_exceptions.ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'varchar(255),\ncounty_number integer,\nfips_code integer,\ncounty_name varchar(255)' at line 4"). Also, probably use additional arguments in cursor.execute() because that's supposed to avoid SQL injections.
 """
 
 
