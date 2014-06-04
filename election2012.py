@@ -27,7 +27,6 @@ import config_local
 reload(config_local)
 
 sys.path.append(os.path.join(config.packagePathS, 'richardpenman-csv2mysql-5d059a4361fb'))
-import csv2mysql
 
 
 
@@ -43,7 +42,7 @@ def main():
     filePathS = os.path.join(config.rawDataPathS, 'election_statistics',
                              'US_elect_county__2012.csv')
     cur.execute('DROP TABLE IF EXISTS election2012')
-    cur.execute('CREATE TABLE election2012(myindex INT PRIMARY KEY AUTO_INCREMENT, un VARCHAR(25), deux VARCHAR(25), trois VARCHAR(25))')
+    cur.execute('CREATE TABLE election2012(myindex INT PRIMARY KEY AUTO_INCREMENT, un VARCHAR(25), trois VARCHAR(25))')
 #    mysqlS = """
 #             LOAD DATA LOCAL INFILE {filePathS}
 #             INTO TABLE election2012
@@ -53,7 +52,7 @@ def main():
 #             (column1, column2);
 #             """
 #    cur.execute(mysqlS.format(filePathS=filePathS))
-    cur.execute("LOAD DATA LOCAL INFILE 'foo.csv' INTO TABLE election2012 FIELDS TERMINATED BY ',' LINES TERMINATED BY '\r\n' (un, deux, trois)")
+    cur.execute("LOAD DATA LOCAL INFILE 'foo.csv' INTO TABLE election2012 FIELDS TERMINATED BY ',' LINES TERMINATED BY '\r\n' (@col1, @col2, @col3) SET un=@col1, trois=@col3")
 #    mysqlS = """
 #             LOAD DATA LOCAL INFILE 'US_elect_county__2012.csv'
 #             INTO TABLE election2012;
@@ -63,11 +62,3 @@ def main():
     for lRow in range(5):
         row = cur.fetchone()
         print row
-        
-        
-
-def testing_csv_import():
-    filePathS = os.path.join(config.rawDataPathS, 'election_statistics',
-                             'US_elect_county__2012.csv')
-    csv2mysql.main(filePathS, 'root', config_local.pwordS, 'localhost',
-                   'election2012', 'sudointellectual')
