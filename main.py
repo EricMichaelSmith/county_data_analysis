@@ -15,7 +15,7 @@ S: string
 T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 
-2014-06-03: Forget about csv2mysql.py. Just see this page: http://stackoverflow.com/questions/4202564/how-to-insert-selected-columns-from-csv-file-to-mysql-using-load-data-infile. First test it with foo.csv, and then try election2012. Write a script to auto-create a string '(@col001, @col002,...' so that you don't have to manually specify fields.
+2014-06-03: Write a script in a utilities.py file to auto-create a string '(@col001, @col002,...' so that you don't have to manually specify fields. Find an election2012 source that's easier to work with?
 """
 
 
