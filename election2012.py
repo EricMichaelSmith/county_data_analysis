@@ -21,12 +21,12 @@ import sys
 
 import config
 reload(config)
+import utilities
+reload(utilities)
 
 sys.path.append(config.configLocalPathS)
 import config_local
 reload(config_local)
-
-sys.path.append(os.path.join(config.packagePathS, 'richardpenman-csv2mysql-5d059a4361fb'))
 
 
 
@@ -34,30 +34,46 @@ def main():
 
     con = MySQLdb.connect(user='root',
                           passwd=config_local.pwordS,
-                          db='sudointellectual',
+                          db='projects',
                           local_infile=1)
     cur = con.cursor()
 
-    # Read in 2012 election data
+    # Prepare for reading in 2012 election data
     filePathS = os.path.join(config.rawDataPathS, 'election_statistics',
                              'US_elect_county__2012.csv')
-    cur.execute('DROP TABLE IF EXISTS election2012')
-    cur.execute('CREATE TABLE election2012(myindex INT PRIMARY KEY AUTO_INCREMENT, un VARCHAR(25), trois VARCHAR(25))')
-#    mysqlS = """
-#             LOAD DATA LOCAL INFILE {filePathS}
-#             INTO TABLE election2012
-#             FIELDS TERMINATED BY ','
-#             LINES TERMINATED BY '\r\n'
-#             IGNORE 1 LINES
-#             (column1, column2);
-#             """
-#    cur.execute(mysqlS.format(filePathS=filePathS))
-    cur.execute("LOAD DATA LOCAL INFILE 'foo.csv' INTO TABLE election2012 FIELDS TERMINATED BY ',' LINES TERMINATED BY '\r\n' (@col1, @col2, @col3) SET un=@col1, trois=@col3")
-#    mysqlS = """
-#             LOAD DATA LOCAL INFILE 'US_elect_county__2012.csv'
-#             INTO TABLE election2012;
-#             """
-#    cur.execute(mysqlS)
+    cur.execute('DROP TABLE IF EXISTS election2012_raw;')
+
+    # Read in necessary columns, including all 'Party' and 'Votes' columns
+    iFirstPartyColumn = 13
+    numPartyColumns = 16
+    commandS = 'CREATE TABLE election2012_raw(fips_election2012 CHAR(5), total_votes INT(10)'
+    for lColumn in xrange(numPartyColumns):
+        oneColumnS = ', party%02d CHAR(3), votes%02d INT(10)' % (lColumn, lColumn)
+        commandS += oneColumnS
+    commandS += ');'
+    cur.execute(commandS)
+    
+    # Load all columns
+    commandS = r"""LOAD DATA LOCAL INFILE '{filePathS}'
+INTO TABLE election2012_raw
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\r\n'
+IGNORE 1 LINES
+""".format(filePathS=filePathS)
+    commandS += utilities.construct_field_string(203)
+    # Add a bracketed list of all columns
+    commandS += '\nSET fips_election2012=@col004, total_votes=@col011'
+    for lColumn in xrange(numPartyColumns):
+        iPartyColumn = iFirstPartyColumn + 12*(lColumn-1)
+        iVotesColumn = iPartyColumn + 7
+        oneColumnS = (', party%02d=@col%03d, votes%02d=@col%03d'
+                     % (lColumn, iPartyColumn, lColumn, iVotesColumn))
+        commandS += oneColumnS
+    commandS += ';'
+    print(commandS)
+    cur.execute(commandS)
+
+    # Print all columns
     cur.execute('SELECT * FROM election2012')
     for lRow in range(5):
         row = cur.fetchone()
