@@ -15,7 +15,7 @@ S: string
 T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 
-2014-06-03: Write a script in a utilities.py file to auto-create a string '(@col001, @col002,...' so that you don't have to manually specify fields. Find an election2012 source that's easier to work with?
+2014-06-14: Check out the output of election2012.main(): Are the columns correct? What are the warning messages?
 """
 
 

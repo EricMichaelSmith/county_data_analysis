@@ -25,7 +25,7 @@ def construct_field_string(numColumns):
     
     outputS = '('
     for lColumn in range(numColumns):
-        outputS += '@col%03d, ' % lColumn
+        outputS += '@col%03d, ' % (lColumn+1)
     outputS = outputS[:-2] + ')'
     
     return outputS

@@ -16,8 +16,8 @@ T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 """
 
-basePathS = r'C:\E\GitHub\Computing\EricMichaelSmith\county_data_analysis'
-configLocalPathS = r'C:\E\Dropbox\Computing\Personal\Projects\county_data_analysis'
-outputPathS = r'C:\E\Dropbox\Computing\Personal\Projects\county_data_analysis\output'
-packagePathS = r'C:\E\Dropbox\Computing\Collected\Python\Packages'
-rawDataPathS = r'c:\e\dropbox\computing\personal\projects\county_data_analysis\raw_data'
+basePathS = 'C:\\E\\GitHub\\Computing\\EricMichaelSmith\\county_data_analysis'
+configLocalPathS = 'C:\\E\\Dropbox\\Computing\\Personal\\Projects\\county_data_analysis'
+outputPathS = 'C:\\E\\Dropbox\\Computing\\Personal\\Projects\\county_data_analysis\\output'
+packagePathS = 'C:\\E\\Dropbox\\Computing\\Collected\\Python\\Packages'
+rawDataPathS = 'C:/E/Dropbox/Computing/Personal/Projects/county_data_analysis/raw_data'   
