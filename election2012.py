@@ -63,7 +63,7 @@ IGNORE 1 LINES
     # Add a bracketed list of all columns
     commandS += '\nSET fips_election2012=@col004, total_votes=@col011'
     for lColumn in xrange(numPartyColumns):
-        iPartyColumn = iFirstPartyColumn + 12*(lColumn-1)
+        iPartyColumn = iFirstPartyColumn + 12*lColumn
         iVotesColumn = iPartyColumn + 7
         oneColumnS = (', party%02d=@col%03d, votes%02d=@col%03d'
                      % (lColumn, iPartyColumn, lColumn, iVotesColumn))
@@ -71,9 +71,12 @@ IGNORE 1 LINES
     commandS += ';'
     print(commandS)
     cur.execute(commandS)
+    
+    # Remove entries that correspond to the voting records of the entire state
+    cur.execute('DELETE FROM election2012_raw WHERE fips_election2012=0;')
 
     # Print all columns
     cur.execute('SELECT * FROM election2012_raw')
-    for lRow in range(5):
+    for lRow in range(10):
         row = cur.fetchone()
         print row

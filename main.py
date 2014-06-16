@@ -15,7 +15,7 @@ S: string
 T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 
-2014-06-14: Check out the output of election2012.main(): Are the columns correct? What are the warning messages?
+2014-06-14: Compile all Dem and GOP columns into 1 column each and delete the other columns
 """
 
 
