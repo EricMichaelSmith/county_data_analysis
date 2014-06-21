@@ -45,7 +45,7 @@ def main():
     # Read in necessary columns, including all 'Party' and 'Votes' columns
     iFirstPartyColumn = 13
     numPartyColumns = 16
-    commandS = 'CREATE TABLE election2012_raw(fips_election2012 CHAR(5), total_votes INT(10)'
+    commandS = 'CREATE TABLE election2012_raw(election2012_fips CHAR(5), election2012_total_votes INT(10)'
     for lColumn in xrange(numPartyColumns):
         oneColumnS = ', party%02d CHAR(3), votes%02d INT(10)' % (lColumn, lColumn)
         commandS += oneColumnS
@@ -61,7 +61,7 @@ IGNORE 1 LINES
 """.format(filePathS=filePathS)
     commandS += utilities.construct_field_string(203)
     # Add a bracketed list of all columns
-    commandS += '\nSET fips_election2012=@col004, total_votes=@col011'
+    commandS += '\nSET election2012_fips=@col004, election2012_total_votes=@col011'
     for lColumn in xrange(numPartyColumns):
         iPartyColumn = iFirstPartyColumn + 12*lColumn
         iVotesColumn = iPartyColumn + 7
@@ -69,14 +69,63 @@ IGNORE 1 LINES
                      % (lColumn, iPartyColumn, lColumn, iVotesColumn))
         commandS += oneColumnS
     commandS += ';'
-    print(commandS)
     cur.execute(commandS)
     
     # Remove entries that correspond to the voting records of the entire state
-    cur.execute('DELETE FROM election2012_raw WHERE fips_election2012=0;')
-
+    cur.execute('DELETE FROM election2012_raw WHERE election2012_fips=0;')
+        
+    # Test extract_votes
+    extract_votes(cur, 'Dem')
+    extract_votes(cur, 'GOP')
+    
+    # Create new table with only relevant columns
+    cur.execute('DROP TABLE IF EXISTS election2012;')
+    commandS = """
+        CREATE TABLE election2012 AS
+        (SELECT election2012_fips, election2012_total_votes,
+        election2012_Dem, election2012_GOP FROM election2012_raw);"""
+    cur.execute(commandS)
+    
     # Print all columns
-    cur.execute('SELECT * FROM election2012_raw')
-    for lRow in range(10):
+    cur.execute('SELECT * FROM election2012;')
+    for lRow in range(1000):
         row = cur.fetchone()
-        print row
+        print(row)
+        
+    # Wrap up
+    con.commit()
+    con.close()
+    
+        
+        
+def extract_votes(cur, partyS):
+    """
+    For each row, find the column that corresponds to the party given in partyS
+    and store the corresponding value in the 'party' column
+    """
+    
+    # Add empty column to store vote total information in
+    commandS = ('ALTER TABLE election2012_raw ' +
+                'ADD election2012_%s INT(10) NULL;' % partyS)
+    cur.execute(commandS)    
+    
+    # Set votes from each 'party###' column
+    iParty = 0
+    numNullValues = None
+    while numNullValues != 0:
+        commandS = """
+        UPDATE election2012_raw
+        SET election2012_%s=votes%02d
+        WHERE party%02d = '%s';
+        """ % (partyS, iParty, iParty, partyS)
+        cur.execute(commandS)
+        
+        # Count number of counties with unset values and iterate
+        commandS = """
+        SELECT COUNT(*) FROM election2012_raw
+        WHERE election2012_%s IS NULL;
+        """ % partyS
+        cur.execute(commandS)
+        row = cur.fetchone()
+        numNullValues = row[0]
+        iParty += 1
