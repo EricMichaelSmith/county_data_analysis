@@ -16,6 +16,7 @@ Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 """
 
 import MySQLdb
+import os
 import sys
 
 import config
@@ -38,7 +39,7 @@ def main():
     cur = con.cursor()
 
     # Prepare for reading in 2012 election data
-    filePathS = '/'.join([config.rawDataPathS, 'election_statistics',
+    filePathS = os.path.join([config.rawDataPathS, 'election_statistics',
                              'US_elect_county__2012.csv'])
     cur.execute('DROP TABLE IF EXISTS election2012_raw;')
 
@@ -87,10 +88,10 @@ IGNORE 1 LINES
     cur.execute(commandS)
     
     # Print all columns
-    cur.execute('SELECT * FROM election2012;')
-    for lRow in range(1000):
-        row = cur.fetchone()
-        print(row)
+#    cur.execute('SELECT * FROM election2012;')
+#    for lRow in range(1000):
+#        row = cur.fetchone()
+#        print(row)
         
     # Wrap up
     con.commit()

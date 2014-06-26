@@ -15,7 +15,7 @@ S: string
 T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 
-2014-06-14: Compile all Dem and GOP columns into 1 column each and delete the other columns
+2014-06-26: You know what? Probably delete election2008.py. This project isn't going to be about temporal shifts, but rather, about static snapshots of county demographics at the present time. Next, make a list of all of your data sources, and for each source, write a script to read in all of the relevant data from that source. Then, write a function to join all of those tables together.
 """
 
 
