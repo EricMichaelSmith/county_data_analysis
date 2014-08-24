@@ -43,7 +43,7 @@ def main():
                              'US_elect_county__2012.csv'])
     cur.execute('DROP TABLE IF EXISTS election2012_raw;')
 
-    # Read in necessary columns, including all 'Party' and 'Votes' columns
+    # Create table with necessary columns, including all 'Party' and 'Votes' columns
     iFirstPartyColumn = 13
     numPartyColumns = 16
     commandS = 'CREATE TABLE election2012_raw(election2012_fips CHAR(5), election2012_total_votes INT(10)'
