@@ -39,15 +39,20 @@ def main():
     cur = con.cursor()
 
     # Prepare for reading in 2012 election data
-    filePathS = os.path.join([config.rawDataPathS, 'fips_codes',
-                             'county-fips.csv'])
+    filePathS = os.path.join(config.rawDataPathS, 'fips_codes',
+                             'county-fips.csv')
     cur.execute('DROP TABLE IF EXISTS fips_raw;')
     
     # Create analysis with necessary columns
     commandS = """
-        CREATE TABLE fips_raw(county_fips LPAD(VARCHAR(3), 3, '0'),
-        state_fips VARCHAR(2), fips_county VARCHAR(32), fips_state VARCHAR(2));"""
+        CREATE TABLE fips_raw(county_fips VARCHAR(3), 
+        state_fips VARCHAR(2), fips_county VARCHAR(32), 
+        fips_state VARCHAR(2));"""
     cur.execute(commandS)
+#    commandS = """
+#        CREATE TABLE fips_raw(county_fips LPAD(VARCHAR(3), 3, '0'),
+#        state_fips VARCHAR(2), fips_county VARCHAR(32), fips_state VARCHAR(2));"""
+#    cur.execute(commandS)
     
     # Load all columns
     commandS = r"""LOAD DATA LOCAL INFILE '{filePathS}'
@@ -55,10 +60,11 @@ def main():
         FIELDS TERMINATED BY ','
         LINES TERMINATED BY '\r\n'
         IGNORE 1 LINES
-        """.format(filePathS=filePathS)
+        """.format(filePathS=filePathS).replace('\\', r'\\')
     commandS += utilities.construct_field_string(6)
     # Add a bracketed list of all columns
     commandS += '\nSET county_fips=@col004, state_fips=@col005, fips_county=@col002, fips_state=@col003;'
+    print(commandS)
     cur.execute(commandS)
     
     # Concatenate the two fips fields
