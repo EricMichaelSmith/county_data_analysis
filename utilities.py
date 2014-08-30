@@ -23,7 +23,7 @@ def construct_field_string(numColumns):
     Constructs a string ("(@col001, @col002,...)") for use in specifying fields in SQL queries
     """
     
-    outputS = '('
+    outputS = '\n('
     for lColumn in range(numColumns):
         outputS += '@col%03d, ' % (lColumn+1)
     outputS = outputS[:-2] + ')'

@@ -32,30 +32,31 @@ reload(config_local)
 def main(cur):
 
     # Prepare for reading in 2012 election data
-    filePathS = os.path.join([config.rawDataPathS, 'election_statistics',
-                             'US_elect_county__2012.csv'])
+    filePathS = os.path.join(config.rawDataPathS, 'election_statistics',
+                             'US_elect_county__2012.csv')
     cur.execute('DROP TABLE IF EXISTS election2012_raw;')
 
     # Create table with necessary columns, including all 'Party' and 'Votes' columns
     iFirstPartyColumn = 13
     numPartyColumns = 16
-    commandS = 'CREATE TABLE election2012_raw(election2012_fips CHAR(5), election2012_total_votes INT(10)'
+    commandS = 'CREATE TABLE election2012_raw(election2012_fips CHAR(5), election2012_total_votes CHAR(10)'
     for lColumn in xrange(numPartyColumns):
-        oneColumnS = ', party%02d CHAR(3), votes%02d INT(10)' % (lColumn, lColumn)
+        oneColumnS = ', party%02d CHAR(3), votes%02d CHAR(10)' % (lColumn, lColumn)
         commandS += oneColumnS
     commandS += ');'
     cur.execute(commandS)
     
     # Load all columns
-    commandS = r"""LOAD DATA LOCAL INFILE '{filePathS}'
-INTO TABLE election2012_raw
+    commandS = """LOAD DATA LOCAL INFILE '{filePathS}'
+INTO TABLE election2012_raw""".format(filePathS=filePathS).replace('\\', r'\\')
+    commandS += r"""
 FIELDS TERMINATED BY ','
 LINES TERMINATED BY '\r\n'
-IGNORE 1 LINES
-""".format(filePathS=filePathS)
+IGNORE 1 LINES"""
     commandS += utilities.construct_field_string(203)
     # Add a bracketed list of all columns
-    commandS += '\nSET election2012_fips=@col004, election2012_total_votes=@col011'
+    commandS += """
+SET election2012_fips=@col004, election2012_total_votes=@col011"""
     for lColumn in xrange(numPartyColumns):
         iPartyColumn = iFirstPartyColumn + 12*lColumn
         iVotesColumn = iPartyColumn + 7
@@ -66,23 +67,26 @@ IGNORE 1 LINES
     cur.execute(commandS)
     
     # Remove entries that correspond to the voting records of the entire state
-    cur.execute('DELETE FROM election2012_raw WHERE election2012_fips=0;')
+    cur.execute("DELETE FROM election2012_raw WHERE election2012_fips='0';")
         
-    # Test extract_votes
+    # Extract Democratic and Republican votes
     extract_votes(cur, 'Dem')
     extract_votes(cur, 'GOP')
     
+    # Convert votes columns to integers
+    cur.execute("""UPDATE election2012_raw
+SET election2012_Dem = CAST(election2012_Dem AS UNSIGNED),
+election2012_GOP = CAST(election2012_GOP AS UNSIGNED)""")
+    
     # Create new table with only relevant columns
     cur.execute('DROP TABLE IF EXISTS election2012;')
-    commandS = """
-        CREATE TABLE election2012 AS
-        (SELECT election2012_fips, election2012_total_votes,
-        election2012_Dem, election2012_GOP FROM election2012_raw);"""
-    cur.execute(commandS)
+    cur.execute("""CREATE TABLE election2012 AS
+(SELECT election2012_fips, election2012_total_votes,
+election2012_Dem, election2012_GOP FROM election2012_raw);""")
     
-    # Print all columns
+    # Print columns
 #    cur.execute('SELECT * FROM election2012;')
-#    for lRow in range(1000):
+#    for lRow in range(10):
 #        row = cur.fetchone()
 #        print(row)
     
@@ -95,8 +99,8 @@ def extract_votes(cur, partyS):
     """
     
     # Add empty column to store vote total information in
-    commandS = ('ALTER TABLE election2012_raw ' +
-                'ADD election2012_%s INT(10) NULL;' % partyS)
+    commandS = ("""ALTER TABLE election2012_raw
+ADD election2012_%s CHAR(10) NULL;""" % partyS)
     cur.execute(commandS)    
     
     # Set votes from each 'party###' column

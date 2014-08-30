@@ -37,59 +37,55 @@ def main(cur):
     cur.execute('DROP TABLE IF EXISTS fips_raw;')
     
     # Create analysis with necessary columns
-    commandS = """
-CREATE TABLE fips_raw(county_fips VARCHAR(3),
-state_fips VARCHAR(2), fips_county VARCHAR(32),
-fips_state VARCHAR(2));"""
-#    commandS = """
-#        CREATE TABLE fips_raw(foo1 CHAR(3), foo2 CHAR(3), foo3 CHAR(3));"""
+    commandS = """CREATE TABLE fips_raw(fips_state_part VARCHAR(2),
+fips_county_part CHAR(3), county_name VARCHAR(72),
+state_name VARCHAR(22));"""
     cur.execute(commandS)
-#    commandS = """
-#        CREATE TABLE fips_raw(county_fips LPAD(VARCHAR(3), 3, '0'),
-#        state_fips VARCHAR(2), fips_county VARCHAR(32), fips_state VARCHAR(2));"""
-#    cur.execute(commandS)
     
     # Load all columns
-    commandS = r"""LOAD DATA LOCAL INFILE '{filePathS}'
-INTO TABLE fips_raw
+    commandS = """LOAD DATA LOCAL INFILE '{filePathS}'
+INTO TABLE fips_raw""".format(filePathS=filePathS).replace('\\', r'\\')
+    commandS += r"""
 FIELDS TERMINATED BY ','
-IGNORE 1 LINES
-""".format(filePathS=filePathS).replace('\\', r'\\')
+LINES TERMINATED BY '\r\n'
+IGNORE 1 LINES"""
     commandS += utilities.construct_field_string(6)
     # Add a bracketed list of all columns
-    commandS += """SET county_fips=@col005, state_fips=@col006,
-fips_county=@col003, fips_state=@col004;"""
-#    commandS = r"""LOAD DATA LOCAL INFILE '{filePathS}'
-#INTO TABLE fips_raw
-#FIELDS TERMINATED BY ','
-#IGNORE 1 LINES
-#(foo1, foo2, foo3);""".format(filePathS=filePathS).replace('\\', r'\\')
-    print(commandS)
+    commandS += """
+SET fips_state_part=@col006, fips_county_part=@col005,
+county_name=@col003, state_name=@col004;"""
     cur.execute(commandS)
     
+    # Pad out fips_county_part
+    cur.execute("""UPDATE fips_raw
+SET fips_county_part = LPAD(fips_county_part, 3, '0');""")
+    
     # Concatenate the two fips fields
-#    commandS = """
-#        UPDATE fips_raw SET fips_fips =
-#        CONCAT(state_fips, county_fips);"""
-#    cur.execute(commandS)
+    cur.execute('ALTER TABLE fips_raw ADD fips_fips VARCHAR(5);')
+    cur.execute("""UPDATE fips_raw
+SET fips_fips = CONCAT(fips_state_part, fips_county_part);""")
+    
+    # Remove quotation marks
+    cur.execute("""UPDATE fips_raw
+SET county_name = REPLACE(county_name, '"', ''),
+state_name = REPLACE(state_name, '"', '');""")
+
+    # Title DC correctly
+    cur.execute("""UPDATE fips_raw
+SET state_name = REPLACE(state_name, 'District of Columbia', 'DC');""")
     
     # Using the now-current FIPS code for Miami-Dade County, FL
-#    commandS = """
-#        UPDATE fips_raw
-#        SET fips_fips = '12086', fips_county = 'Miami-Dade'
-#        WHERE fips_fips = '12025';"""
-#    cur.execute(commandS)
+    cur.execute("""UPDATE fips_raw
+SET fips_fips = '12086', county_name = 'Miami-Dade'
+WHERE fips_fips = '12025';""")
     
     # Create new table with only relevant columns
-#    cur.execute('DROP TABLE IF EXISTS fips;')
-#    commandS = """
-#        CREATE TABLE fips AS
-#        (SELECT fips_fips, fips_county, fips_state FROM fips_raw);"""
-#    cur.execute(commandS)
+    cur.execute('DROP TABLE IF EXISTS fips;')
+    cur.execute("""CREATE TABLE fips AS
+(SELECT fips_fips, county_name, state_name FROM fips_raw);""")
     
-    # Print all columns
+    # Print columns
 #    cur.execute('SELECT * FROM fips;')
-    cur.execute('SELECT * FROM fips_raw;')
-    for lRow in range(10):
-        row = cur.fetchone()
-        print(row)
+#    for lRow in range(10):
+#        row = cur.fetchone()
+#        print(row)

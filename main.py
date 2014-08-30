@@ -15,7 +15,7 @@ S: string
 T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 
-2014-08-28: You're currently testing fips.py. Then try merging it with election2012, and then probably figure out how to import election2008, yes. After that keep adding tables: make a list of all of your data sources, and for each source, write a script to read in all of the relevant data from that source. Then, write a function to join all of those tables together.
+2014-08-30: Figure out how to import election2008. After that keep adding tables: make a list of all of your data sources, and for each source, write a script to read in all of the relevant data from that source. Then, write a function to join all of those tables together.
 """
 
 import MySQLdb
@@ -36,19 +36,38 @@ import config_local
 reload(config_local)
 
 
-def main():
+def main(cur):
+        
+    # Import data
+    fips.main(cur)
+    election2012.main(cur)
     
+    # Merge tables
+    cur.execute('DROP TABLE IF EXISTS full;')
+    cur.execute("""CREATE TABLE full
+SELECT *
+FROM fips LEFT JOIN election2012
+ON fips.fips_fips = election2012.election2012_fips;""")
+
+    # Print columns
+    cur.execute('SELECT * FROM full;')
+    for lRow in range(10):
+        row = cur.fetchone()
+        print(row)    
+    
+    
+
+def wrapper():
+    
+    # Start connection
     con = MySQLdb.connect(user='root',
                           passwd=config_local.pwordS,
                           db='projects',
                           local_infile=1)
     cur = con.cursor()
     
-    
-    ## Import data
-    fips(cur)
-    election2012(cur)
-    
+    # Run code
+    main(cur)
     
     # Wrap up
     con.commit()
