@@ -15,7 +15,6 @@ T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 """
 
-import MySQLdb
 import os
 import sys
 
@@ -30,13 +29,7 @@ reload(config_local)
 
 
 
-def main():
-
-    con = MySQLdb.connect(user='root',
-                          passwd=config_local.pwordS,
-                          db='projects',
-                          local_infile=1)
-    cur = con.cursor()
+def main(cur):
 
     # Prepare for reading in 2012 election data
     filePathS = os.path.join(config.rawDataPathS, 'fips_codes',
@@ -45,9 +38,11 @@ def main():
     
     # Create analysis with necessary columns
     commandS = """
-        CREATE TABLE fips_raw(county_fips VARCHAR(3), 
-        state_fips VARCHAR(2), fips_county VARCHAR(32), 
-        fips_state VARCHAR(2));"""
+CREATE TABLE fips_raw(county_fips VARCHAR(3),
+state_fips VARCHAR(2), fips_county VARCHAR(32),
+fips_state VARCHAR(2));"""
+#    commandS = """
+#        CREATE TABLE fips_raw(foo1 CHAR(3), foo2 CHAR(3), foo3 CHAR(3));"""
     cur.execute(commandS)
 #    commandS = """
 #        CREATE TABLE fips_raw(county_fips LPAD(VARCHAR(3), 3, '0'),
@@ -56,42 +51,45 @@ def main():
     
     # Load all columns
     commandS = r"""LOAD DATA LOCAL INFILE '{filePathS}'
-        INTO TABLE fips_raw
-        FIELDS TERMINATED BY ','
-        LINES TERMINATED BY '\r\n'
-        IGNORE 1 LINES
-        """.format(filePathS=filePathS).replace('\\', r'\\')
+INTO TABLE fips_raw
+FIELDS TERMINATED BY ','
+IGNORE 1 LINES
+""".format(filePathS=filePathS).replace('\\', r'\\')
     commandS += utilities.construct_field_string(6)
     # Add a bracketed list of all columns
-    commandS += '\nSET county_fips=@col004, state_fips=@col005, fips_county=@col002, fips_state=@col003;'
+    commandS += """SET county_fips=@col005, state_fips=@col006,
+fips_county=@col003, fips_state=@col004;"""
+#    commandS = r"""LOAD DATA LOCAL INFILE '{filePathS}'
+#INTO TABLE fips_raw
+#FIELDS TERMINATED BY ','
+#IGNORE 1 LINES
+#(foo1, foo2, foo3);""".format(filePathS=filePathS).replace('\\', r'\\')
     print(commandS)
     cur.execute(commandS)
     
     # Concatenate the two fips fields
-    commandS = """
-        UPDATE fips_raw SET fips_fips =
-        CONCAT(state_fips, county_fips);"""
-    cur.execute(commandS)
+#    commandS = """
+#        UPDATE fips_raw SET fips_fips =
+#        CONCAT(state_fips, county_fips);"""
+#    cur.execute(commandS)
     
     # Using the now-current FIPS code for Miami-Dade County, FL
-    commandS = """
-        UPDATE fips_raw
-        SET fips_fips = '12086', fips_county = 'Miami-Dade'
-        WHERE fips_fips = '12025';"""
+#    commandS = """
+#        UPDATE fips_raw
+#        SET fips_fips = '12086', fips_county = 'Miami-Dade'
+#        WHERE fips_fips = '12025';"""
+#    cur.execute(commandS)
     
     # Create new table with only relevant columns
-    cur.execute('DROP TABLE IF EXISTS fips;')
-    commandS = """
-        CREATE TABLE fips AS
-        (SELECT fips_fips, fips_county, fips_state FROM fips_raw);"""
-    cur.execute(commandS)
+#    cur.execute('DROP TABLE IF EXISTS fips;')
+#    commandS = """
+#        CREATE TABLE fips AS
+#        (SELECT fips_fips, fips_county, fips_state FROM fips_raw);"""
+#    cur.execute(commandS)
     
     # Print all columns
-    cur.execute('SELECT * FROM fips;')
-    for lRow in range(1000):
+#    cur.execute('SELECT * FROM fips;')
+    cur.execute('SELECT * FROM fips_raw;')
+    for lRow in range(10):
         row = cur.fetchone()
         print(row)
-        
-    # Wrap up
-    con.commit()
-    con.close()

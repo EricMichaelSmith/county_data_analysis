@@ -15,7 +15,6 @@ T: tuple
 Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
 """
 
-import MySQLdb
 import os
 import sys
 
@@ -30,13 +29,7 @@ reload(config_local)
 
 
 
-def main():
-
-    con = MySQLdb.connect(user='root',
-                          passwd=config_local.pwordS,
-                          db='projects',
-                          local_infile=1)
-    cur = con.cursor()
+def main(cur):
 
     # Prepare for reading in 2012 election data
     filePathS = os.path.join([config.rawDataPathS, 'election_statistics',
@@ -92,10 +85,6 @@ IGNORE 1 LINES
 #    for lRow in range(1000):
 #        row = cur.fetchone()
 #        print(row)
-        
-    # Wrap up
-    con.commit()
-    con.close()
     
         
         
