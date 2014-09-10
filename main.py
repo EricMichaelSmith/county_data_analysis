@@ -36,10 +36,11 @@ import config_local
 reload(config_local)
 
 
-def main(cur):
+def main(con, cur):
         
     # Import data
     fips.main(cur)
+    election2008.main(con, cur)
     election2012.main(cur)
     
     # Merge tables
@@ -72,3 +73,5 @@ def wrapper():
     # Wrap up
     con.commit()
     con.close()
+    
+    return (con, cur)
