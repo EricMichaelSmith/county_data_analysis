@@ -30,7 +30,7 @@ reload(config_local)
 
 
 def main(cur):
-
+    
     # Prepare for reading in 2012 election data
     filePathS = os.path.join(config.rawDataPathS, 'election_statistics',
                              'US_elect_county__2012.csv')
@@ -39,7 +39,7 @@ def main(cur):
     # Create table with necessary columns, including all 'Party' and 'Votes' columns
     iFirstPartyColumn = 13
     numPartyColumns = 16
-    commandS = 'CREATE TABLE election2012_raw(election2012_fips CHAR(5), election2012_total_votes CHAR(10)'
+    commandS = 'CREATE TABLE election2012_raw(election2012_fips CHAR(5), election2012_total_votes INT(10)'
     for lColumn in xrange(numPartyColumns):
         oneColumnS = ', party%02d CHAR(3), votes%02d CHAR(10)' % (lColumn, lColumn)
         commandS += oneColumnS
@@ -73,18 +73,22 @@ SET election2012_fips=@col004, election2012_total_votes=@col011"""
     extract_votes(cur, 'Dem')
     extract_votes(cur, 'GOP')
     
-    # Convert votes columns to integers
-    cur.execute("""UPDATE election2012_raw
-SET election2012_Dem = CAST(election2012_Dem AS UNSIGNED),
-election2012_GOP = CAST(election2012_GOP AS UNSIGNED)""")
-    
     # Create new table with only relevant columns
     cur.execute('DROP TABLE IF EXISTS election2012;')
     cur.execute("""CREATE TABLE election2012 AS
 (SELECT election2012_fips, election2012_total_votes,
 election2012_Dem, election2012_GOP FROM election2012_raw);""")
-    
+
+    # Edit column names
+    cur.execute("""ALTER TABLE election2012
+CHANGE election2012_Dem election2012_dem INT,
+CHANGE election2012_GOP election2012_rep INT;""")
+
     # Print columns
+#    cur.execute('SHOW COLUMNS FROM election2012;')
+#    for lRow in range(10):
+#        row = cur.fetchone()
+#        print(row)
 #    cur.execute('SELECT * FROM election2012;')
 #    for lRow in range(10):
 #        row = cur.fetchone()
