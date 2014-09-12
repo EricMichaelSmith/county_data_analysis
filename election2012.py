@@ -29,7 +29,7 @@ reload(config_local)
 
 
 
-def main(cur):
+def main(con, cur):
     
     # Prepare for reading in 2012 election data
     filePathS = os.path.join(config.rawDataPathS, 'election_statistics',

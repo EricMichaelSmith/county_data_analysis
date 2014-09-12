@@ -32,41 +32,16 @@ import election2008
 reload(election2008)
 import election2012
 reload(election2012)
+import readin
+reload(readin)
 
 sys.path.append(config.configLocalPathS)
 import config_local
 reload(config_local)
-
-
-
-def main(con, cur):
-        
-    # Import data
-    fips.main(cur)
-    (shapeIndexL, shapeL) = election2008.main(con, cur)
-    election2012.main(cur)
-    
-    # Merge tables
-    cur.execute('DROP TABLE IF EXISTS full;')
-    cur.execute("""CREATE TABLE full
-SELECT *
-FROM fips
-LEFT JOIN election2008 ON fips.fips_fips = election2008.election2008_fips
-LEFT JOIN election2012 ON fips.fips_fips = election2012.election2012_fips;""")
-
-    # Print columns
-    cur.execute('SHOW COLUMNS FROM full;')
-    for lRow in range(20):
-        row = cur.fetchone()
-        print(row)  
-    cur.execute('SELECT * FROM full;')
-    for lRow in range(10):
-        row = cur.fetchone()
-        print(row)    
     
     
 
-def connect():
+def connect_to_sql():
     
     # Start connection
     con = MySQLdb.connect(user='root',
@@ -78,13 +53,42 @@ def connect():
     return (con, cur)
     
     
-
-def wrapper():
     
-    (con, cur) = connect()
+def create_database(con, cur):
+        
+    # Import data
+    fips.main(con, cur)
+    (shapeIndexL, shapeL) = election2008.main(con, cur)
+    election2012.main(con, cur)
+    readin.main(con, cur)
+    
+    # Merge tables
+    cur.execute('DROP TABLE IF EXISTS full;')
+    cur.execute("""CREATE TABLE full
+SELECT *
+FROM fips
+INNER JOIN election2008 ON fips.fips_fips = election2008.election2008_fips
+INNER JOIN election2012 ON fips.fips_fips = election2012.election2012_fips;""")
+    # {{{merge fields from readin}}}
+
+    # Print columns
+    cur.execute('SHOW COLUMNS FROM full;')
+    for lRow in range(20):
+        row = cur.fetchone()
+        print(row)  
+    cur.execute('SELECT * FROM full;')
+    for lRow in range(10):
+        row = cur.fetchone()
+        print(row)
+    
+    
+
+def sql_wrapper():
+    
+    (con, cur) = connect_to_sql()
     
     # Run code
-    main(cur)
+    create_database(con, cur)
     
     # Wrap up
     con.commit()
