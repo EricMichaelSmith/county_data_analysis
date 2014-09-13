@@ -36,16 +36,20 @@ Sources:
     - Available from http://www.countyhealthrankings.org/rankings/data, a program from Robert Wood Johnson
 - unemployment_statistics
     - From http://www.bls.gov/lau/tables.htm
+    - laucntycur14.txt downloaded 2014-09-13, others downloaded 2014-02
 
 Suffixes at the end of variable names:
-A: numpy array
-B: boolean
-D: dictionary
-L: list
-S: string
-T: tuple
-Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
+a: numpy array
+b: boolean
+d: dictionary
+df: pandas DataFrame
+l: list
+s: string
+t: tuple
+Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
+
+import os
 
 import config
 reload(config)
@@ -53,28 +57,37 @@ reload(config)
 
 
 def main(con, cur):
-    
-    # {{{add all files to fieldsD: each file should contain three keys, one for all of the fields to import, one for the delimiter, and one for how many lines to ignore; anything else?}}}
 
     # Fields to extract: first level indicates folder, second level indicates
-    # file name, third level indicates fields
-    fieldsD = {'2008_to_2012_age_and_sex': 
+    # file name, third level indicates fields. In length-2 tuples, index 0
+    # represents the field start column for fixed-width files and index 1
+    # represents the length of the field.
+    field_d = {'2008_to_2012_age_and_sex': 
                {'ACS_12_5YR_S0101_with_ann.csv':
-                {'delimiter': ',', 'lines_to_ignore': 2,
-                 'fields': {178: 'median_age',
+                {'delimiter': ',',
+                 'header_lines_to_ignore': 2,
+                 'footer_lines_to_ignore': 1,
+                 'fields': {2: 'fips_column',
+                            178: 'median_age',
                             184: 'sex_ratio'}}},
                '2008_to_2012_race_and_ethnicity':
                {'ACS_12_5YR_B03002_with_ann.csv':
-                {'delimiter': ',', 'lines_to_ignore': 2,
-                 'fields': {4: '2008_to_2012_race_and_ethnicity__total',
+                {'delimiter': ',',
+                 'header_lines_to_ignore': 2,
+                 'footer_lines_to_ignore': 1,
+                 'fields': {2: 'fips_column',
+                            4: '2008_to_2012_race_and_ethnicity__total',
                             8: 'white_not_hispanic__number',
                             10: 'black_not_hispanic__number',
                             14: 'asian_not_hispanic__number',
                             26: 'hispanic_number'}}},
                '2008_to_2012_social_characteristics':
                {'ACS_12_5YR_DP02_with_ann.csv':
-                {'delimiter': ',', 'lines_to_ignore': 2,
-                 'fields': {54: 'households_with_children',
+                {'delimiter': ',',
+                 'header_lines_to_ignore': 2,
+                 'footer_lines_to_ignore': 1,
+                 'fields': {2: 'fips_column',
+                            54: 'households_with_children',
                             58: 'households_with_senior_citizens',
                             60: 'average_household_size',
                             102: 'never_married',
@@ -85,8 +98,96 @@ def main(con, cur):
                             318: 'same_house_1_yr_ago',
                             370: 'foreign_born',
                             450: 'language_other_than_english_spoken_at_home'}}},
-               '2010_to_2013_population': {},
-               '2012_income_and_poverty': {},
-               '2013_area': {},
-               '2014_health_indicators': {},
-               'unemployment_statistics': {}}
+               '2010_to_2013_population':
+               {'PEP_2013_PEPANNRES_with_ann.csv':
+                {'delimiter': ',',
+                 'header_lines_to_ignore': 2,
+                 'footer_lines_to_ignore': 1,
+                 'fields': {2: 'fips_column',
+                            4: 'population_2010_census',
+                            9: 'population_2013_estimate'}}},
+               '2012_income_and_poverty':
+               {'est12ALL.txt':
+                {'delimiter': None,
+                 'header_lines_to_ignore': 0,
+                 'footer_lines_to_ignore': 1,
+                 'fields': {(1, 2): 'fips_state_column',
+                            (4, 3): 'fips_county_column',
+                            (35, 4): 'in_poverty',
+                            (134, 6): 'median_household_income'}}},
+               '2013_area':
+               {'2013_Gaz_counties_national.txt':
+                {'delimiter': '\t',
+                 'header_lines_to_ignore': 2,
+                 'footer_lines_to_ignore': 1,
+                 'fields': {2: 'fips_column',
+                            6: 'land_area'}}},
+               '2014_health_indicators':
+               {'2014 CHR analytic data.csv':
+                {'delimiter': ',',
+                 'header_lines_to_ignore': 2,
+                 'footer_lines_to_ignore': 1,
+                 'fields': {1: 'fips_state_column',
+                            2: 'fips_county_column',
+                            6: 'premature_death_rate',
+                            31: 'smoking',
+                            36: 'obese',
+                            71: 'teen_birth_rate',
+                            76: 'percent_non_senior_citizens_without_insurance',
+                            144: 'violent_crime_rate'}}},
+               'unemployment_statistics':
+               {'laucnty08.txt':
+                {'delimiter': None,
+                 'header_lines_to_ignore': 6,
+                 'footer_lines_to_ignore': 3,
+                 'fields': {(19, 2): 'fips_state_column',
+                            (26, 3): 'fips_county_column',
+                            (129, 4): 'unemployment_rate_2008'}},
+                'laucnty12.txt':
+                {'delimiter': None,
+                 'header_lines_to_ignore': 6,
+                 'footer_lines_to_ignore': 3,
+                 'fields': {(19, 2): 'fips_state_column',
+                            (26, 3): 'fips_county_column',
+                            (129, 4): 'unemployment_rate_2012'}},
+                'laucntycur14.txt':
+                {'delimiter': None,
+                 'header_lines_to_ignore': 38646,
+                 'footer_lines_to_ignore': 3226,
+                 'fields': {(21, 2): 'fips_state_column',
+                            (28, 3): 'fips_county_column',
+                            (130, 4): 'unemployment_rate_2014_jun'}}}}
+                 
+                 
+    ## Read in files
+    for folder_name in field_d:
+        for file_name in field_d[folder_name]:
+
+            # Prepare for creating table
+            table_name = file_name.replace('.', '')
+            file_path = os.path.join(config.raw_data_path_s, folder_name,
+                                     file_name)
+            cur.execute('DROP TABLE IF EXISTS {table_name};'.format(table_name=table_name))
+            
+            # Create table
+            command_s = 'CREATE TABLE {table_name}('
+            command_s = command_s.format(table_name=table_name)
+            this_table_field_d = field_d[folder_name][file_name]['fields']
+            for field in this_table_field_d:
+                field_s = '{field_name} FLOAT(10),'
+                field_s = field_s.replace(field_name=this_table_field_d[field])
+                command_s += field_s
+            command_s = command_s[:-1] + ');'
+            cur.execute(command_s)
+            
+            if field_d[folder_name][file_name]['delimiter']:
+                # CSV or tab-delimited tables
+            
+                # {{{}}}
+            
+            else:
+                # Fixed-width tables
+            
+                # {{{}}}
+            
+            # {{{make sure to convert either 'fips_column' or 'fips_state_column'+'fips_county_column' to table_name+'_fips'}}}

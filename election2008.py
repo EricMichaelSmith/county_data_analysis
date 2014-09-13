@@ -7,14 +7,14 @@ Created on Wed Sep 10 08:25:48 2014
 Reads in 2008 county election data (2008 Presidential General Election, County Results, National Atlas of the United States, http://nationalatlas.gov/atlasftp.html?openChapters=chphist#chphist)
 
 Suffixes at the end of variable names:
-A: numpy array
-B: boolean
-D: dictionary
-DF: pandas DataFrame
-L: list
-S: string
-T: tuple
-Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
+a: numpy array
+b: boolean
+d: dictionary
+df: pandas DataFrame
+l: list
+s: string
+t: tuple
+Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
 import os
@@ -25,43 +25,43 @@ import sys
 import config
 reload(config)
 
-sys.path.append(config.GeoDaSandboxPathS)
+sys.path.append(config.GeoDaSandbox_path_s)
 from pyGDsandbox.dataIO import dbf2df
 
 def main(con, cur):
 
     # Prepare for reading in 2012 election data
-    filePathS = os.path.join(config.rawDataPathS, 'election_statistics', '2008',
+    file_path_s = os.path.join(config.raw_data_path_s, 'election_statistics', '2008',
                              'elpo08p020.dbf')
     
     # Read fields into DataFrame
-    fullDF = dbf2df(filePathS)
-    fullDF = fullDF.convert_objects(convert_numeric=True)
+    full_df = dbf2df(file_path_s)
+    full_df = full_df.convert_objects(convert_numeric=True)
     
     # Select relevant columns
-    finalDF = fullDF.loc[:, ['FIPS', 'TOTAL_VOTE', 'VOTE_DEM', 'VOTE_REP']]
-    finalDF.columns = ['election2008_fips', 'election2008_total_votes', 'election2008_dem', 'election2008_rep']
-    shapeIndexL = finalDF.election2008_fips.tolist()
+    final_df = full_df.loc[:, ['FIPS', 'TOTAL_VOTE', 'VOTE_DEM', 'VOTE_REP']]
+    final_df.columns = ['election2008_fips', 'election2008_total_votes', 'election2008_dem', 'election2008_rep']
+    shape_index_l = final_df.election2008_fips.tolist()
 
     # Read in shapefile data
-    fullShapeFile = shapefile.Reader(filePathS)
-    shapeL = fullShapeFile.shapes()
+    fullShapeFile = shapefile.Reader(file_path_s)
+    shape_l = fullShapeFile.shapes()
     del fullShapeFile
     
         # Removing the second (incorrect) entry for Ottawa County, OH
-    finalDF = finalDF.loc[~finalDF['election2008_fips'].isin([39123]) |
-                          ~finalDF['election2008_dem'].isin([12064])]
+    final_df = final_df.loc[~final_df['election2008_fips'].isin([39123]) |
+                          ~final_df['election2008_dem'].isin([12064])]
     
     # Cleaning, sorting, and setting the index
-    finalDF = finalDF.drop_duplicates()
-    finalDF = finalDF.sort(columns='election2008_fips')
-    finalDF = finalDF.set_index('election2008_fips', drop=False)
+    final_df = final_df.drop_duplicates()
+    final_df = final_df.sort(columns='election2008_fips')
+    final_df = final_df.set_index('election2008_fips', drop=False)
     
     # Converting the fips column to an int
-    finalDF['election2008_fips'] = finalDF['election2008_fips'].astype(str)
+    final_df['election2008_fips'] = final_df['election2008_fips'].astype(str)
     
     # This is a work-around for a NaN somewhere in Michigan.
-    finalDF = finalDF[pd.notnull(finalDF['election2008_total_votes'])]
+    final_df = final_df[pd.notnull(final_df['election2008_total_votes'])]
     
     # Correcting the total number of votes cast in Laclede County, MO: the number
     # in the source file is actually the number from the previous county in the
@@ -69,29 +69,29 @@ def main(con, cur):
     # Laclede County between 2008 and 2012 is -231%. The figure that I'm
     # replacing the vote total with was taken from Wikipedia
     # (http://en.wikipedia.org/wiki/Laclede_County,_Missouri, 2014-04-17).
-    finalDF.loc[29105, 'election2008_total_votes'] = 16379
+    final_df.loc[29105, 'election2008_total_votes'] = 16379
 
     # Correcting the number of votes in Washington County, OH, which is
     # erroneous; the correct number can be found at
     # http://en.wikipedia.org/wiki/United_States_presidential_election_in_Ohio,_2008,
     # 2014-04-17.
-    finalDF.loc[39167, 'election2008_total_votes'] = 29932
-    finalDF.loc[39167, 'election2008_dem'] = 12368
+    final_df.loc[39167, 'election2008_total_votes'] = 29932
+    final_df.loc[39167, 'election2008_dem'] = 12368
 
     # Correcting the number of votes in LaPorte County, IN, which is
     # erroneous; the correct number can be found at
     # http://en.wikipedia.org/wiki/United_States_presidential_election_in_Indiana,_2008,
     # 2014-04-17.
-    finalDF.loc[18091, 'election2008_total_votes'] = 46919
+    final_df.loc[18091, 'election2008_total_votes'] = 46919
             
     # Write to SQL database
-    finalDF.to_sql(name='election2008', con=con, if_exists='replace', flavor='mysql',
+    final_df.to_sql(name='election2008', con=con, if_exists='replace', flavor='mysql',
                    index='False')
                    
     # Print columns
 #    cur.execute('SELECT * FROM election2008;')
-#    for lRow in range(10):
+#    for l_row in range(10):
 #        row = cur.fetchone()
 #        print(row)
     
-    return (shapeIndexL, shapeL)
+    return (shape_index_l, shape_l)

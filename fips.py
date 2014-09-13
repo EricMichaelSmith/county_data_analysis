@@ -6,13 +6,14 @@ Created 2014-08-24
 Reads in FIPS codes from https://github.com/hadley/data-counties/blob/master/county-fips.csv (Hadley Wickham)
 
 Suffixes at the end of variable names:
-A: numpy array
-B: boolean
-D: dictionary
-L: list
-S: string
-T: tuple
-Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
+a: numpy array
+b: boolean
+d: dictionary
+df: pandas DataFrame
+l: list
+s: string
+t: tuple
+Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
 import os
@@ -31,30 +32,30 @@ reload(config_local)
 
 def main(con, cur):
 
-    # Prepare for reading in 2012 election data
-    filePathS = os.path.join(config.rawDataPathS, 'fips_codes',
+    # Prepare for reading in FIPS data
+    file_path = os.path.join(config.rawDataPathS, 'fips_codes',
                              'county-fips.csv')
     cur.execute('DROP TABLE IF EXISTS fips_raw;')
     
-    # Create analysis with necessary columns
-    commandS = """CREATE TABLE fips_raw(fips_state_part VARCHAR(2),
+    # Create table with necessary columns
+    command_s = """CREATE TABLE fips_raw(fips_state_part VARCHAR(2),
 fips_county_part CHAR(3), county_name VARCHAR(72),
 state_name VARCHAR(22));"""
-    cur.execute(commandS)
+    cur.execute(command_s)
     
     # Load all columns
-    commandS = """LOAD DATA LOCAL INFILE '{filePathS}'
-INTO TABLE fips_raw""".format(filePathS=filePathS).replace('\\', r'\\')
-    commandS += r"""
+    command_s = """LOAD DATA LOCAL INFILE '{file_path}'
+INTO TABLE fips_raw""".format(file_path=file_path).replace('\\', r'\\')
+    command_s += r"""
 FIELDS TERMINATED BY ','
 LINES TERMINATED BY '\r\n'
 IGNORE 1 LINES"""
-    commandS += utilities.construct_field_string(6)
+    command_s += utilities.construct_field_string(6)
     # Add a bracketed list of all columns
-    commandS += """
+    command_s += """
 SET fips_state_part=@col006, fips_county_part=@col005,
 county_name=@col003, state_name=@col004;"""
-    cur.execute(commandS)
+    cur.execute(command_s)
     
     # Pad out fips_county_part
     cur.execute("""UPDATE fips_raw
@@ -86,6 +87,6 @@ WHERE fips_fips = '12025';""")
     
     # Print columns
 #    cur.execute('SELECT * FROM fips;')
-#    for lRow in range(10):
+#    for l_row in range(10):
 #        row = cur.fetchone()
 #        print(row)

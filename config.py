@@ -7,18 +7,19 @@ Created on Sun May 18 20:42:51 2014
 Provides for global variables throughout all of county_data_analysis
 
 Suffixes at the end of variable names:
-A: numpy array
-B: boolean
-D: dictionary
-L: list
-S: string
-T: tuple
-Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
+a: numpy array
+b: boolean
+d: dictionary
+df: pandas DataFrame
+l: list
+s: string
+t: tuple
+Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
-basePathS = 'C:\\E\\GitHub\\Computing\\EricMichaelSmith\\county_data_analysis'
-configLocalPathS = 'C:\\E\\Dropbox\\Computing\\Personal\\Code\\county_data_analysis'
-GeoDaSandboxPathS = r'C:\E\GitHub\Computing\GeoDaSandbox\sandbox'
-outputPathS = 'C:\\E\\Dropbox\\Computing\\Personal\\Code\\county_data_analysis\\output'
-packagePathS = 'C:\\E\\Dropbox\\Computing\\Collected\\Python\\Packages'
-rawDataPathS = 'C:\\E\\Dropbox\\Computing\\Personal\\Code\\county_data_analysis\\raw_data'
+base_path_s = 'C:\\E\\GitHub\\Computing\\EricMichaelSmith\\county_data_analysis'
+config_local_path_s = 'C:\\E\\Dropbox\\Computing\\Personal\\Code\\county_data_analysis'
+GeoDaSandbox_path_s = r'C:\E\GitHub\Computing\GeoDaSandbox\sandbox'
+output_path_s = 'C:\\E\\Dropbox\\Computing\\Personal\\Code\\county_data_analysis\\output'
+package_path_s = 'C:\\E\\Dropbox\\Computing\\Collected\\Python\\Packages'
+raw_data_path_s = 'C:\\E\\Dropbox\\Computing\\Personal\\Code\\county_data_analysis\\raw_data'

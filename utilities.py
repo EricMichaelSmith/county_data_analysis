@@ -7,25 +7,26 @@ Created on Wed Jun 04 20:44:19 2014
 Utility functions for county_data_analysis
 
 Suffixes at the end of variable names:
-A: numpy array
-B: boolean
-D: dictionary
-L: list
-S: string
-T: tuple
-Underscores indicate chaining: for instance, "fooT_T" is a tuple of tuples
+a: numpy array
+b: boolean
+d: dictionary
+df: pandas DataFrame
+l: list
+s: string
+t: tuple
+Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
 
 
-def construct_field_string(numColumns):
+def construct_field_string(num_columns):
     """
     Constructs a string ("(@col001, @col002,...)") for use in specifying fields in SQL queries
     """
     
-    outputS = '\n('
-    for lColumn in range(numColumns):
-        outputS += '@col%03d, ' % (lColumn+1)
-    outputS = outputS[:-2] + ')'
+    output_s = '\n('
+    for l_column in range(num_columns):
+        output_s += '@col%03d, ' % (l_column+1)
+    output_s = output_s[:-2] + ')'
     
-    return outputS
+    return output_s

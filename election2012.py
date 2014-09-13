@@ -23,7 +23,7 @@ reload(config)
 import utilities
 reload(utilities)
 
-sys.path.append(config.configLocalPathS)
+sys.path.append(config.config_local_path_s)
 import config_local
 reload(config_local)
 
@@ -32,39 +32,39 @@ reload(config_local)
 def main(con, cur):
     
     # Prepare for reading in 2012 election data
-    filePathS = os.path.join(config.rawDataPathS, 'election_statistics',
+    file_path_s = os.path.join(config.raw_data_path_s, 'election_statistics',
                              'US_elect_county__2012.csv')
     cur.execute('DROP TABLE IF EXISTS election2012_raw;')
 
     # Create table with necessary columns, including all 'Party' and 'Votes' columns
-    iFirstPartyColumn = 13
-    numPartyColumns = 16
-    commandS = 'CREATE TABLE election2012_raw(election2012_fips CHAR(5), election2012_total_votes INT(10)'
-    for lColumn in xrange(numPartyColumns):
-        oneColumnS = ', party%02d CHAR(3), votes%02d CHAR(10)' % (lColumn, lColumn)
-        commandS += oneColumnS
-    commandS += ');'
-    cur.execute(commandS)
+    i_first_party_column = 13
+    num_party_columns = 16
+    command_s = 'CREATE TABLE election2012_raw(election2012_fips CHAR(5), election2012_total_votes INT(10)'
+    for l_column in xrange(num_party_columns):
+        one_column_s = ', party%02d CHAR(3), votes%02d CHAR(10)' % (l_column, l_column)
+        command_s += one_column_s
+    command_s += ');'
+    cur.execute(command_s)
     
     # Load all columns
-    commandS = """LOAD DATA LOCAL INFILE '{filePathS}'
-INTO TABLE election2012_raw""".format(filePathS=filePathS).replace('\\', r'\\')
-    commandS += r"""
+    command_s = """LOAD DATA LOCAL INFILE '{file_path_s}'
+INTO TABLE election2012_raw""".format(file_path_s=file_path_s).replace('\\', r'\\')
+    command_s += r"""
 FIELDS TERMINATED BY ','
 LINES TERMINATED BY '\r\n'
 IGNORE 1 LINES"""
-    commandS += utilities.construct_field_string(203)
+    command_s += utilities.construct_field_string(203)
     # Add a bracketed list of all columns
-    commandS += """
+    command_s += """
 SET election2012_fips=@col004, election2012_total_votes=@col011"""
-    for lColumn in xrange(numPartyColumns):
-        iPartyColumn = iFirstPartyColumn + 12*lColumn
-        iVotesColumn = iPartyColumn + 7
-        oneColumnS = (', party%02d=@col%03d, votes%02d=@col%03d'
-                     % (lColumn, iPartyColumn, lColumn, iVotesColumn))
-        commandS += oneColumnS
-    commandS += ';'
-    cur.execute(commandS)
+    for l_column in xrange(num_party_columns):
+        i_party_column = i_first_party_column + 12*l_column
+        i_votes_column = i_party_column + 7
+        one_column_s = (', party%02d=@col%03d, votes%02d=@col%03d'
+                     % (l_column, i_party_column, l_column, i_votes_column))
+        command_s += one_column_s
+    command_s += ';'
+    cur.execute(command_s)
     
     # Remove entries that correspond to the voting records of the entire state
     cur.execute("DELETE FROM election2012_raw WHERE election2012_fips='0';")
@@ -86,44 +86,44 @@ CHANGE election2012_GOP election2012_rep INT;""")
 
     # Print columns
 #    cur.execute('SHOW COLUMNS FROM election2012;')
-#    for lRow in range(10):
+#    for l_row in range(10):
 #        row = cur.fetchone()
 #        print(row)
 #    cur.execute('SELECT * FROM election2012;')
-#    for lRow in range(10):
+#    for l_row in range(10):
 #        row = cur.fetchone()
 #        print(row)
     
         
         
-def extract_votes(cur, partyS):
+def extract_votes(cur, party_s):
     """
-    For each row, find the column that corresponds to the party given in partyS
+    For each row, find the column that corresponds to the party given in party_s
     and store the corresponding value in the 'party' column
     """
     
     # Add empty column to store vote total information in
-    commandS = ("""ALTER TABLE election2012_raw
-ADD election2012_%s CHAR(10) NULL;""" % partyS)
-    cur.execute(commandS)    
+    command_s = ("""ALTER TABLE election2012_raw
+ADD election2012_%s CHAR(10) NULL;""" % party_s)
+    cur.execute(command_s)    
     
     # Set votes from each 'party###' column
-    iParty = 0
-    numNullValues = None
-    while numNullValues != 0:
-        commandS = """
+    i_party = 0
+    num_null_values = None
+    while num_null_values != 0:
+        command_s = """
         UPDATE election2012_raw
         SET election2012_%s=votes%02d
         WHERE party%02d = '%s';
-        """ % (partyS, iParty, iParty, partyS)
-        cur.execute(commandS)
+        """ % (party_s, i_party, i_party, party_s)
+        cur.execute(command_s)
         
         # Count number of counties with unset values and iterate
-        commandS = """
+        command_s = """
         SELECT COUNT(*) FROM election2012_raw
         WHERE election2012_%s IS NULL;
-        """ % partyS
-        cur.execute(commandS)
+        """ % party_s
+        cur.execute(command_s)
         row = cur.fetchone()
-        numNullValues = row[0]
-        iParty += 1
+        num_null_values = row[0]
+        i_party += 1
