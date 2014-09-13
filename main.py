@@ -16,7 +16,7 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-09-11: Keep adding tables: make a list of all of your data sources, and for each source, write a script to read in all of the relevant data from that source. Then, write a function to join all of those tables together.
+2014-09-13: Troubleshoot import. Why is the TRIM(SUBSTR()) command failing? Why are floats defaulting to one decimal place? When all tables import correctly, go through and make sure that the values of the first few rows of each field are what they should be. Then, write a function to join all of those tables together and see which counties are left in the table and which are missing; that should tell you what rows are missing data. Also, when you're done with all of that, see the OneNote page task list for other stuff to do.
 """
 
 import MySQLdb
@@ -33,8 +33,8 @@ import election2008
 reload(election2008)
 import election2012
 reload(election2012)
-import readin
-reload(readin)
+import read_many_files
+reload(read_many_files)
 
 sys.path.append(config.config_local_path_s)
 import config_local
@@ -61,7 +61,7 @@ def create_database(con, cur):
     fips.main(con, cur)
     (shape_index_l, shape_l) = election2008.main(con, cur)
     election2012.main(con, cur)
-    readin.main(con, cur)
+    read_many_files.main(con, cur)
     
     # Merge tables
     cur.execute('DROP TABLE IF EXISTS full;')

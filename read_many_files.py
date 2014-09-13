@@ -67,6 +67,7 @@ def main(con, cur):
                {'ACS_12_5YR_S0101_with_ann.csv':
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
+                 'total_num_fields': 219,
                  'fields': {2: 'fips_column',
                             178: 'median_age',
                             184: 'sex_ratio'}}},
@@ -74,6 +75,7 @@ def main(con, cur):
                {'ACS_12_5YR_B03002_with_ann.csv':
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
+                 'total_num_fields': 45,
                  'fields': {2: 'fips_column',
                             4: '2008_to_2012_race_and_ethnicity__total',
                             8: 'white_not_hispanic__number',
@@ -84,6 +86,7 @@ def main(con, cur):
                {'ACS_12_5YR_DP02_with_ann.csv':
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
+                 'total_num_fields': 599,
                  'fields': {2: 'fips_column',
                             54: 'households_with_children',
                             58: 'households_with_senior_citizens',
@@ -100,6 +103,7 @@ def main(con, cur):
                {'PEP_2013_PEPANNRES_with_ann.csv':
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
+                 'total_num_fields': 9,
                  'fields': {2: 'fips_column',
                             4: 'population_2010_census',
                             9: 'population_2013_estimate'}}},
@@ -115,12 +119,14 @@ def main(con, cur):
                {'2013_Gaz_counties_national.txt':
                 {'delimiter': r'\t',
                  'lines_to_ignore': 2,
+                 'total_num_fields': 10,
                  'fields': {2: 'fips_column',
                             6: 'land_area'}}},
                '2014_health_indicators':
                {'2014 CHR analytic data.csv':
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
+                 'total_num_fields': 324,
                  'fields': {1: 'fips_state_column',
                             2: 'fips_county_column',
                             6: 'premature_death_rate',
@@ -162,7 +168,7 @@ def main(con, cur):
             this_table_field_d = field_d[folder_name][file_name]['fields']
             for field in this_table_field_d:
                 field_s = '{field_name} FLOAT(10), '
-                field_s = field_s.replace(field_name=this_table_field_d[field])
+                field_s = field_s.format(field_name=this_table_field_d[field])
                 command_s += field_s
             command_s = command_s[:-2] + ');'
             cur.execute(command_s)
@@ -186,12 +192,11 @@ IGNORE {lines_to_ignore} LINES"""
                     lines_to_ignore=field_d[folder_name][file_name]['lines_to_ignore'])
 
                 # Add list of fields
-                field_l = [field for field in field_d[folder_name][file_name]['fields']]
-                max_field_num = max(field_l)
-                command_s += utilities.construct_field_string(max_field_num)
+                total_num_fields = field_d[folder_name][file_name]['total_num_fields']
+                command_s += utilities.construct_field_string(total_num_fields)
                 
                 # Add a list of field name correspondences
-                command_s = """
+                command_s += """
 SET """
                 for field_num, field_name in \
                     field_d[folder_name][file_name]['fields'].iteritems():
@@ -216,7 +221,7 @@ IGNORE {lines_to_ignore} LINES
                 # Tell MySQL to add column ranges adding to the fields we want
                 # (inspiration: http://stackoverflow.com/questions/11461790/loa
                 # ding-fixed-width-space-delimited-txt-file-into-mysql)
-                command_s = """
+                command_s += """
 SET """
                 for field_num, field_name in \
                     field_d[folder_name][file_name]['fields'].iteritems():
@@ -229,9 +234,9 @@ SET """
                 
             
             ## Create proper FIPS column
-            if 'fips_column' in field_d[folder_name][file_name]['fields']:
+            if 'fips_column' in field_d[folder_name][file_name]['fields'].values():
                 command_s = """ALTER TABLE {table_name}
-CHANGE fips_column {table_name}_fips CHAR;""".format(table_name=table_name)
+CHANGE fips_column {table_name}_fips VARCHAR(5);""".format(table_name=table_name)
                 cur.execute(command_s)
                 
             else:
