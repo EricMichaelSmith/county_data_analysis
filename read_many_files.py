@@ -53,7 +53,8 @@ import os
 
 import config
 reload(config)
-
+import utilities
+reload(utilities)
 
 
 def main(con, cur):
@@ -65,16 +66,14 @@ def main(con, cur):
     field_d = {'2008_to_2012_age_and_sex': 
                {'ACS_12_5YR_S0101_with_ann.csv':
                 {'delimiter': ',',
-                 'header_lines_to_ignore': 2,
-                 'footer_lines_to_ignore': 1,
+                 'lines_to_ignore': 2,
                  'fields': {2: 'fips_column',
                             178: 'median_age',
                             184: 'sex_ratio'}}},
                '2008_to_2012_race_and_ethnicity':
                {'ACS_12_5YR_B03002_with_ann.csv':
                 {'delimiter': ',',
-                 'header_lines_to_ignore': 2,
-                 'footer_lines_to_ignore': 1,
+                 'lines_to_ignore': 2,
                  'fields': {2: 'fips_column',
                             4: '2008_to_2012_race_and_ethnicity__total',
                             8: 'white_not_hispanic__number',
@@ -84,8 +83,7 @@ def main(con, cur):
                '2008_to_2012_social_characteristics':
                {'ACS_12_5YR_DP02_with_ann.csv':
                 {'delimiter': ',',
-                 'header_lines_to_ignore': 2,
-                 'footer_lines_to_ignore': 1,
+                 'lines_to_ignore': 2,
                  'fields': {2: 'fips_column',
                             54: 'households_with_children',
                             58: 'households_with_senior_citizens',
@@ -101,32 +99,28 @@ def main(con, cur):
                '2010_to_2013_population':
                {'PEP_2013_PEPANNRES_with_ann.csv':
                 {'delimiter': ',',
-                 'header_lines_to_ignore': 2,
-                 'footer_lines_to_ignore': 1,
+                 'lines_to_ignore': 2,
                  'fields': {2: 'fips_column',
                             4: 'population_2010_census',
                             9: 'population_2013_estimate'}}},
                '2012_income_and_poverty':
                {'est12ALL.txt':
                 {'delimiter': None,
-                 'header_lines_to_ignore': 0,
-                 'footer_lines_to_ignore': 1,
+                 'lines_to_ignore': 0,
                  'fields': {(1, 2): 'fips_state_column',
                             (4, 3): 'fips_county_column',
                             (35, 4): 'in_poverty',
                             (134, 6): 'median_household_income'}}},
                '2013_area':
                {'2013_Gaz_counties_national.txt':
-                {'delimiter': '\t',
-                 'header_lines_to_ignore': 2,
-                 'footer_lines_to_ignore': 1,
+                {'delimiter': r'\t',
+                 'lines_to_ignore': 2,
                  'fields': {2: 'fips_column',
                             6: 'land_area'}}},
                '2014_health_indicators':
                {'2014 CHR analytic data.csv':
                 {'delimiter': ',',
-                 'header_lines_to_ignore': 2,
-                 'footer_lines_to_ignore': 1,
+                 'lines_to_ignore': 2,
                  'fields': {1: 'fips_state_column',
                             2: 'fips_county_column',
                             6: 'premature_death_rate',
@@ -138,25 +132,16 @@ def main(con, cur):
                'unemployment_statistics':
                {'laucnty08.txt':
                 {'delimiter': None,
-                 'header_lines_to_ignore': 6,
-                 'footer_lines_to_ignore': 3,
+                 'lines_to_ignore': 6,
                  'fields': {(19, 2): 'fips_state_column',
                             (26, 3): 'fips_county_column',
                             (129, 4): 'unemployment_rate_2008'}},
                 'laucnty12.txt':
                 {'delimiter': None,
-                 'header_lines_to_ignore': 6,
-                 'footer_lines_to_ignore': 3,
+                 'lines_to_ignore': 6,
                  'fields': {(19, 2): 'fips_state_column',
                             (26, 3): 'fips_county_column',
-                            (129, 4): 'unemployment_rate_2012'}},
-                'laucntycur14.txt':
-                {'delimiter': None,
-                 'header_lines_to_ignore': 38646,
-                 'footer_lines_to_ignore': 3226,
-                 'fields': {(21, 2): 'fips_state_column',
-                            (28, 3): 'fips_county_column',
-                            (130, 4): 'unemployment_rate_2014_jun'}}}}
+                            (129, 4): 'unemployment_rate_2012'}}}}
                  
                  
     ## Read in files
@@ -165,29 +150,114 @@ def main(con, cur):
 
             # Prepare for creating table
             table_name = file_name.replace('.', '')
+            print('Loading {table_name}.'.format(table_name=table_name))
             file_path = os.path.join(config.raw_data_path_s, folder_name,
                                      file_name)
-            cur.execute('DROP TABLE IF EXISTS {table_name};'.format(table_name=table_name))
+            cur.execute('DROP TABLE IF EXISTS {table_name};'.format(table_name=
+                                                                      table_name))
             
             # Create table
             command_s = 'CREATE TABLE {table_name}('
             command_s = command_s.format(table_name=table_name)
             this_table_field_d = field_d[folder_name][file_name]['fields']
             for field in this_table_field_d:
-                field_s = '{field_name} FLOAT(10),'
+                field_s = '{field_name} FLOAT(10), '
                 field_s = field_s.replace(field_name=this_table_field_d[field])
                 command_s += field_s
-            command_s = command_s[:-1] + ');'
+            command_s = command_s[:-2] + ');'
             cur.execute(command_s)
             
+            
+            ## Load all columns
             if field_d[folder_name][file_name]['delimiter']:
                 # CSV or tab-delimited tables
             
-                # {{{}}}
-            
+                # Start command
+                command_s = """LOAD DATA LOCAL INFILE '{file_path}'
+INTO TABLE {table_name}"""
+                command_s = command_s.format(file_path=file_path, table_name=table_name)
+                command_s = command_s.replace('\\', r'\\')
+                command_s += r"""
+FIELDS TERMINATED BY '{delimiter}'
+LINES TERMINATED BY '\r\n'
+IGNORE {lines_to_ignore} LINES"""
+                command_s = command_s.format( \
+                    delimiter=field_d[folder_name][file_name]['delimiter'],
+                    lines_to_ignore=field_d[folder_name][file_name]['lines_to_ignore'])
+
+                # Add list of fields
+                field_l = [field for field in field_d[folder_name][file_name]['fields']]
+                max_field_num = max(field_l)
+                command_s += utilities.construct_field_string(max_field_num)
+                
+                # Add a list of field name correspondences
+                command_s = """
+SET """
+                for field_num, field_name in \
+                    field_d[folder_name][file_name]['fields'].iteritems():
+                        command_s += '%s=@col%03d, ' % (field_name, field_num)
+                command_s = command_s[:-2] + ';'
+                            
             else:
                 # Fixed-width tables
             
-                # {{{}}}
+                # Start command
+                command_s = """LOAD DATA LOCAL INFILE '{file_path}'
+INTO TABLE {table_name}"""
+                command_s = command_s.format(file_path=file_path, table_name=table_name)
+                command_s = command_s.replace('\\', r'\\')
+                command_s += r"""
+LINES TERMINATED BY '\r\n'
+IGNORE {lines_to_ignore} LINES
+(@whole_row)"""
+                command_s = command_s.format( \
+                    lines_to_ignore=field_d[folder_name][file_name]['lines_to_ignore'])
+                
+                # Tell MySQL to add column ranges adding to the fields we want
+                # (inspiration: http://stackoverflow.com/questions/11461790/loa
+                # ding-fixed-width-space-delimited-txt-file-into-mysql)
+                command_s = """
+SET """
+                for field_num, field_name in \
+                    field_d[folder_name][file_name]['fields'].iteritems():
+                        command_s += '%s = TRIM(SUBSTR(@whole_row, %d, %d), ' \
+                            % (field_name, field_num[0], field_num[1])
+                command_s = command_s[:-2] + ';'
+                
+            print(command_s)
+            cur.execute(command_s)
+                
             
-            # {{{make sure to convert either 'fips_column' or 'fips_state_column'+'fips_county_column' to table_name+'_fips'}}}
+            ## Create proper FIPS column
+            if 'fips_column' in field_d[folder_name][file_name]['fields']:
+                command_s = """ALTER TABLE {table_name}
+CHANGE fips_column {table_name}_fips CHAR;""".format(table_name=table_name)
+                cur.execute(command_s)
+                
+            else:
+                # Pad out fips_county_column
+                cur.execute("""UPDATE {table_name}
+SET fips_county_column = LPAD(fips_county_column, 3, '0');""").format(table_name=table_name)
+
+                # Concatenate the two FIPS fields
+                command_s = 'ALTER TABLE {table_name} ADD {table_name}_fips VARCHAR(5);'
+                command_s = command_s.format(table_name=table_name)
+                cur.execute(command_s)
+                command_s = """UPDATE {table_name}
+SET {table_name}_fips = CONCAT(fips_state_column, fips_county_column);"""
+                command_s = command_s.format(table_name=table_name)
+                cur.execute(command_s)
+                
+                # Delete unused columns
+                command_s = """ALTER TABLE {table_name}
+DROP fips_state_column
+DROP fips_county_column""".format(table_name=table_name)
+                cur.execute(command_s)
+
+            
+            # Print columns
+            print('First rows of {table_name}:'.format(table_name=table_name))
+            cur.execute('SELECT * FROM {table_name};'.format(table_name=table_name))
+            for l_row in range(10):
+                row = cur.fetchone()
+                print(row)

@@ -17,16 +17,11 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
 import os
-import sys
 
 import config
 reload(config)
 import utilities
 reload(utilities)
-
-sys.path.append(config.configLocalPathS)
-import config_local
-reload(config_local)
 
 
 
