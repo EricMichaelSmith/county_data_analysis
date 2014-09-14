@@ -28,7 +28,7 @@ reload(utilities)
 def main(con, cur):
 
     # Prepare for reading in FIPS data
-    file_path = os.path.join(config.rawDataPathS, 'fips_codes',
+    file_path = os.path.join(config.raw_data_path_s, 'fips_codes',
                              'county-fips.csv')
     cur.execute('DROP TABLE IF EXISTS fips_raw;')
     

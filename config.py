@@ -17,6 +17,7 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
+database_s = 'county_data_analysis'
 base_path_s = 'C:\\E\\GitHub\\Computing\\EricMichaelSmith\\county_data_analysis'
 config_local_path_s = 'C:\\E\\Dropbox\\Computing\\Personal\\Code\\county_data_analysis'
 GeoDaSandbox_path_s = r'C:\E\GitHub\Computing\GeoDaSandbox\sandbox'

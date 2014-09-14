@@ -124,6 +124,6 @@ ADD election2012_%s CHAR(10) NULL;""" % party_s)
         WHERE election2012_%s IS NULL;
         """ % party_s
         cur.execute(command_s)
-        row = cur.fetchone()
-        num_null_values = row[0]
+        output_t = cur.fetchall()
+        num_null_values = output_t[0]['COUNT(*)']
         i_party += 1

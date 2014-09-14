@@ -67,50 +67,55 @@ def main(con, cur):
                {'ACS_12_5YR_S0101_with_ann.csv':
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
+                 'new_line_string': '\r\n',
                  'total_num_fields': 219,
                  'fields': {2: 'fips_column',
-                            178: 'median_age',
-                            184: 'sex_ratio'}}},
+                            179: 'median_age',
+                            185: 'sex_ratio'}}},
                '2008_to_2012_race_and_ethnicity':
                {'ACS_12_5YR_B03002_with_ann.csv':
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
-                 'total_num_fields': 45,
+                 'new_line_string': '\r\n',
+                 'total_num_fields': 46,
                  'fields': {2: 'fips_column',
-                            4: '2008_to_2012_race_and_ethnicity__total',
-                            8: 'white_not_hispanic__number',
-                            10: 'black_not_hispanic__number',
-                            14: 'asian_not_hispanic__number',
-                            26: 'hispanic_number'}}},
+                            5: '2008_to_2012_race_and_ethnicity__total',
+                            9: 'white_not_hispanic__number',
+                            11: 'black_not_hispanic__number',
+                            15: 'asian_not_hispanic__number',
+                            27: 'hispanic_number'}}},
                '2008_to_2012_social_characteristics':
                {'ACS_12_5YR_DP02_with_ann.csv':
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
-                 'total_num_fields': 599,
+                 'new_line_string': '\r\n',
+                 'total_num_fields': 600,
                  'fields': {2: 'fips_column',
-                            54: 'households_with_children',
-                            58: 'households_with_senior_citizens',
-                            60: 'average_household_size',
-                            102: 'never_married',
-                            118: 'divorced',
-                            156: 'fertility',
-                            266: 'high_school_graduate',
-                            278: 'veterans',
-                            318: 'same_house_1_yr_ago',
-                            370: 'foreign_born',
-                            450: 'language_other_than_english_spoken_at_home'}}},
+                            55: 'households_with_children',
+                            59: 'households_with_senior_citizens',
+                            61: 'average_household_size',
+                            103: 'never_married',
+                            119: 'divorced',
+                            157: 'fertility',
+                            267: 'high_school_graduate',
+                            279: 'veterans',
+                            319: 'same_house_1_yr_ago',
+                            371: 'foreign_born',
+                            451: 'language_other_than_english_spoken_at_home'}}},
                '2010_to_2013_population':
                {'PEP_2013_PEPANNRES_with_ann.csv':
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
-                 'total_num_fields': 9,
+                 'new_line_string': '\r\n',
+                 'total_num_fields': 10,
                  'fields': {2: 'fips_column',
-                            4: 'population_2010_census',
-                            9: 'population_2013_estimate'}}},
+                            5: 'population_2010_census',
+                            10: 'population_2013_estimate'}}},
                '2012_income_and_poverty':
                {'est12ALL.txt':
                 {'delimiter': None,
                  'lines_to_ignore': 0,
+                 'new_line_string': '\r\n',
                  'fields': {(1, 2): 'fips_state_column',
                             (4, 3): 'fips_county_column',
                             (35, 4): 'in_poverty',
@@ -118,14 +123,16 @@ def main(con, cur):
                '2013_area':
                {'2013_Gaz_counties_national.txt':
                 {'delimiter': r'\t',
-                 'lines_to_ignore': 2,
+                 'lines_to_ignore': 1,
+                 'new_line_string': '\r\n',
                  'total_num_fields': 10,
                  'fields': {2: 'fips_column',
-                            6: 'land_area'}}},
+                            7: 'land_area'}}},
                '2014_health_indicators':
-               {'2014 CHR analytic data.csv':
+               {'2014_CHR_analytic_data.csv':
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
+                 'new_line_string': '\r\n',
                  'total_num_fields': 324,
                  'fields': {1: 'fips_state_column',
                             2: 'fips_county_column',
@@ -139,12 +146,14 @@ def main(con, cur):
                {'laucnty08.txt':
                 {'delimiter': None,
                  'lines_to_ignore': 6,
+                 'new_line_string': '\r\n',
                  'fields': {(19, 2): 'fips_state_column',
                             (26, 3): 'fips_county_column',
                             (129, 4): 'unemployment_rate_2008'}},
                 'laucnty12.txt':
                 {'delimiter': None,
                  'lines_to_ignore': 6,
+                 'new_line_string': '\r\n',
                  'fields': {(19, 2): 'fips_state_column',
                             (26, 3): 'fips_county_column',
                             (129, 4): 'unemployment_rate_2012'}}}}
@@ -167,7 +176,7 @@ def main(con, cur):
             command_s = command_s.format(table_name=table_name)
             this_table_field_d = field_d[folder_name][file_name]['fields']
             for field in this_table_field_d:
-                field_s = '{field_name} FLOAT(10), '
+                field_s = '{field_name} FLOAT(16, 5), '
                 field_s = field_s.format(field_name=this_table_field_d[field])
                 command_s += field_s
             command_s = command_s[:-2] + ');'
@@ -185,11 +194,12 @@ INTO TABLE {table_name}"""
                 command_s = command_s.replace('\\', r'\\')
                 command_s += r"""
 FIELDS TERMINATED BY '{delimiter}'
-LINES TERMINATED BY '\r\n'
+LINES TERMINATED BY '{new_line_string}'
 IGNORE {lines_to_ignore} LINES"""
                 command_s = command_s.format( \
                     delimiter=field_d[folder_name][file_name]['delimiter'],
-                    lines_to_ignore=field_d[folder_name][file_name]['lines_to_ignore'])
+                    lines_to_ignore=field_d[folder_name][file_name]['lines_to_ignore'],
+                    new_line_string=field_d[folder_name][file_name]['new_line_string'])
 
                 # Add list of fields
                 total_num_fields = field_d[folder_name][file_name]['total_num_fields']
@@ -225,24 +235,54 @@ IGNORE {lines_to_ignore} LINES
 SET """
                 for field_num, field_name in \
                     field_d[folder_name][file_name]['fields'].iteritems():
-                        command_s += '%s = TRIM(SUBSTR(@whole_row, %d, %d), ' \
+                        command_s += '%s = TRIM(SUBSTR(@whole_row, %d, %d)), ' \
                             % (field_name, field_num[0], field_num[1])
                 command_s = command_s[:-2] + ';'
                 
-            print(command_s)
+#            print(command_s)
             cur.execute(command_s)
                 
             
             ## Create proper FIPS column
             if 'fips_column' in field_d[folder_name][file_name]['fields'].values():
                 command_s = """ALTER TABLE {table_name}
-CHANGE fips_column {table_name}_fips VARCHAR(5);""".format(table_name=table_name)
+CHANGE fips_column fips_column INT;""".format(table_name=table_name)
+                cur.execute(command_s)
+                command_s = """ALTER TABLE {table_name}
+CHANGE fips_column {table_name}_fips CHAR(5);""".format(table_name=table_name)
                 cur.execute(command_s)
                 
             else:
+                
+                # Cast FIPS columns as CHAR
+                command_s = """ALTER TABLE {table_name}
+CHANGE fips_state_column fips_state_column INT,
+CHANGE fips_county_column fips_county_column INT;""".format(table_name=table_name)
+                cur.execute(command_s)
+                command_s = """ALTER TABLE {table_name}
+CHANGE fips_state_column fips_state_column CHAR(2),
+CHANGE fips_county_column fips_county_column CHAR(3);"""
+                command_s = command_s.format(table_name=table_name)
+                cur.execute(command_s)
+                
+                # Print columns
+#                print('First rows of {table_name}, before padding:'.format(table_name=table_name))
+#                cur.execute('SELECT * FROM {table_name};'.format(table_name=table_name))
+#                for l_row in range(10):
+#                    row = cur.fetchone()
+#                    print(row)
+                
                 # Pad out fips_county_column
-                cur.execute("""UPDATE {table_name}
-SET fips_county_column = LPAD(fips_county_column, 3, '0');""").format(table_name=table_name)
+                command_s = """UPDATE {table_name}
+SET fips_county_column = LPAD(fips_county_column, 3, '0');""".format(table_name=table_name)
+                cur.execute(command_s)
+                
+                # Print columns
+#                print('First rows of {table_name}, after padding:'.format(table_name=table_name))
+#                cur.execute('SELECT * FROM {table_name};'.format(table_name=table_name))
+#                for l_row in range(10):
+#                    row = cur.fetchone()
+#                    print(row)
 
                 # Concatenate the two FIPS fields
                 command_s = 'ALTER TABLE {table_name} ADD {table_name}_fips VARCHAR(5);'
@@ -255,14 +295,16 @@ SET {table_name}_fips = CONCAT(fips_state_column, fips_county_column);"""
                 
                 # Delete unused columns
                 command_s = """ALTER TABLE {table_name}
-DROP fips_state_column
-DROP fips_county_column""".format(table_name=table_name)
+DROP fips_state_column,
+DROP fips_county_column;""".format(table_name=table_name)
                 cur.execute(command_s)
 
             
             # Print columns
-            print('First rows of {table_name}:'.format(table_name=table_name))
-            cur.execute('SELECT * FROM {table_name};'.format(table_name=table_name))
-            for l_row in range(10):
-                row = cur.fetchone()
-                print(row)
+#            print('First rows of {table_name}:'.format(table_name=table_name))
+#            cur.execute('SELECT * FROM {table_name};'.format(table_name=table_name))
+#            for l_row in range(10):
+#                row = cur.fetchone()
+#                print(row)
+                
+    return field_d
