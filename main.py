@@ -16,7 +16,7 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-09-15: Add other derived features. Plot features on the shape plot from last time and see which counties are left in the table and which are missing; that should tell you what rows are missing data. Also, when you're done with all of that, see the OneNote page task list for other stuff to do.
+2014-09-17: Test selecting.py and write a fips column and election2008_dem to a Series, which you should plot using that make_shape_plot function to see which counties are left in the table and which are missing; that should tell you what rows are missing data. Add other derived features. Also, when you're done with all of that, see the OneNote page task list for other stuff to do.
 """
 
 import MySQLdb
