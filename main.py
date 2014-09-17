@@ -16,25 +16,7 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-09-17: [Debug this:
-
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-  File "plotting.py", line 172, in make_shape_plot
-    colorT = colorTypesD[colorTypeS]()
-  File "plotting.py", line 170, in <lambda>
-    colorTypesD = {'boolean': lambda: define_boolean_color(valueSR, colorT_T),
-  File "plotting.py", line 43, in define_boolean_color
-    colorDF.loc[booleanSR, columnS] = colorT_T[0][lColumn]
-  File "C:\Anaconda\lib\site-packages\pandas\core\indexing.py", line 94, in __setitem__
-    indexer = self._convert_tuple(key, is_setter=True)
-  File "C:\Anaconda\lib\site-packages\pandas\core\indexing.py", line 115, in _convert_tuple
-    idx = self._convert_to_indexer(k, axis=i, is_setter=is_setter)
-  File "C:\Anaconda\lib\site-packages\pandas\core\indexing.py", line 967, in _convert_to_indexer
-    raise KeyError('%s not in index' % objarr[mask])
-KeyError: '[  6093.  19386.   5697. ...,   2317.   1042.    658.] not in index']
-
-Test selecting.py and write a fips column and election2008_dem to a Series, which you should plot using that make_shape_plot function to see which counties are left in the table and which are missing; that should tell you what rows are missing data. Add other derived features. Also, when you're done with all of that, see the OneNote page task list for other stuff to do.
+2014-09-16: Add other derived features. Also, when you're done with all of that, see the OneNote page task list for other stuff to do.
 """
 
 import MySQLdb

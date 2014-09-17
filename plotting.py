@@ -172,13 +172,13 @@ def make_shape_plot(valueSR, shapeIndexL, shapeL, colorTypeS, colorT_T,
     colorT = colorTypesD[colorTypeS]()
     colorDF = colorT[0]
     maxMagnitude = colorT[1]
-        
+            
     # Add shapes to plot
     for lFIPS in valueSR.index:
-        thisCountiesColorT = tuple(colorDF.loc[lFIPS])        
+        thisCountiesColorT = tuple(colorDF.loc[lFIPS])
         
-        iShapeL = [i for i,j in enumerate(shapeIndexL) if j==lFIPS]
-        for iShape in iShapeL:            
+        iShapeL = [i for i,j in enumerate(shapeIndexL) if j==int(lFIPS)]
+        for iShape in iShapeL:       
             shapeBoundsThisShapeL = shapeL[iShape].bbox
             shapeBoundsAllShapesL[0] = \
                 min(shapeBoundsThisShapeL[0], shapeBoundsAllShapesL[0])
