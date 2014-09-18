@@ -16,7 +16,7 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-09-16: Add other derived features. Also, when you're done with all of that, see the OneNote page task list for other stuff to do.
+2014-09-16: Also, when you're done with all of that, see the OneNote page task list for other stuff to do.
 """
 
 import MySQLdb
@@ -24,6 +24,8 @@ import sys
 
 import config
 reload(config)
+import confounding_factors
+reload(confounding_factors)
 import fips
 reload(fips)
 import election2008
@@ -49,8 +51,11 @@ def main():
     # Create SQL database
     create_database(con, cur)
     
-    # Add derived featueres
+    # Add derived features
     add_derived_features(con, cur)
+    
+    # Find confounding factors
+    confounding_factors(con, cur)
     
     # Wrap up
     con.commit()
@@ -88,7 +93,49 @@ SET fraction_dem_shift = election2012_fraction_dem - election2008_fraction_dem;"
     cur.execute(command_s)
     command_s = """UPDATE full
 SET unemployment_rate_shift = unemployment_rate_2012 - unemployment_rate_2008;"""
-    cur.execute(command_s)   
+    cur.execute(command_s)
+    
+    # white_not_hispanic__fraction
+    command_s = 'ALTER TABLE full ADD white_not_hispanic__fraction FLOAT(8, 5);'
+    cur.execute(command_s)
+    command_s = """UPDATE full
+SET white_not_hispanic__fraction = white_not_hispanic__number / 2008_to_2013_race_and_ethnicity__total;"""
+    cur.execute(command_s)
+
+    # black_not_hispanic__fraction
+    command_s = 'ALTER TABLE full ADD black_not_hispanic__fraction FLOAT(8, 5);'
+    cur.execute(command_s)
+    command_s = """UPDATE full
+SET black_not_hispanic__fraction = black_not_hispanic__number / 2008_to_2013_race_and_ethnicity__total;"""
+    cur.execute(command_s)
+
+    # asian_not_hispanic__fraction
+    command_s = 'ALTER TABLE full ADD asian_not_hispanic__fraction FLOAT(8, 5);'
+    cur.execute(command_s)
+    command_s = """UPDATE full
+SET asian_not_hispanic__fraction = asian_not_hispanic__number / 2008_to_2013_race_and_ethnicity__total;"""
+    cur.execute(command_s)
+
+    # hispanic__fraction
+    command_s = 'ALTER TABLE full ADD hispanic__fraction FLOAT(8, 5);'
+    cur.execute(command_s)
+    command_s = """UPDATE full
+SET hispanic__fraction = hispanic__number / 2008_to_2013_race_and_ethnicity__total;"""
+    cur.execute(command_s)
+
+    # population_change__fraction
+    command_s = 'ALTER TABLE full ADD population_change__fraction FLOAT(8, 5);'
+    cur.execute(command_s)
+    command_s = """UPDATE full
+SET population_change__fraction = (population_2013_estimate - population_2010_census) / population_2010_census;"""
+    cur.execute(command_s)
+
+    # population_density
+    command_s = 'ALTER TABLE full ADD population_density FLOAT(8, 5);'
+    cur.execute(command_s)
+    command_s = """UPDATE full
+SET population_density = population_2013_estimate / land_area;"""
+    cur.execute(command_s)
     
     
 
