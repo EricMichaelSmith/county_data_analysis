@@ -17,9 +17,19 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
+from sklearn import linear_model
+
+import selecting
+reload(selecting)
+
+
+
 def main(con, cur):
     
-    factor_s_l = ['asian_not_hispanic_fraction',
+    # Load data
+    explanatory_s = 'dem_fraction_shift'
+    explanatory_a = selecting.select_fields(con, cur, [explanatory_s], output_type='np_array')
+    feature_s_l = ['asian_not_hispanic_fraction',
                   'average_household_size',
                   'black_not_hispanic_fraction',
                   'divorced',
@@ -42,6 +52,10 @@ def main(con, cur):
                   'sex_ratio',
                   'smoking',
                   'teen_birth_rate',
+                  'unemployment_fraction_shift',
                   'veterans',
                   'violent_crime_rate'
                   'white_not_hispanic_fraction']
+    feature_a = selecting.select_fields(con, cur, feature_s_l, output_type='np_array')
+
+                  

@@ -16,7 +16,7 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-09-16: Also, when you're done with all of that, see the OneNote page task list for other stuff to do.
+2014-09-19: See your bookmark folder "2014-09-19 Multiple linear regression with cross-validation" for how to automatically implement CV-based feature selection on your feature set. Then, find some way to rank the best features for a regression model with n features. When you're done with all of that, see the OneNote page task list for other stuff to do.
 """
 
 import MySQLdb
@@ -55,7 +55,7 @@ def main():
     add_derived_features(con, cur)
     
     # Find confounding factors
-    confounding_factors(con, cur)
+    #confounding_factors.main(con, cur)
     
     # Wrap up
     con.commit()
@@ -68,31 +68,31 @@ def main():
 def add_derived_features(con, cur):
     
     # election2008_percent_dem
-    command_s = 'ALTER TABLE full ADD election2008_fraction_dem FLOAT(6, 5);'
+    command_s = 'ALTER TABLE full ADD election2008_dem_fraction FLOAT(6, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET election2008_fraction_dem = election2008_dem / election2008_total_votes;"""
+SET election2008_dem_fraction = election2008_dem / election2008_total_votes;"""
     cur.execute(command_s)    
 
     # election2012_percent_dem
-    command_s = 'ALTER TABLE full ADD election2012_fraction_dem FLOAT(6, 5);'
+    command_s = 'ALTER TABLE full ADD election2012_dem_fraction FLOAT(6, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET election2012_fraction_dem = election2012_dem / election2012_total_votes;"""
+SET election2012_dem_fraction = election2012_dem / election2012_total_votes;"""
     cur.execute(command_s)    
 
     # dem_shift
-    command_s = 'ALTER TABLE full ADD fraction_dem_shift FLOAT(8, 5);'
+    command_s = 'ALTER TABLE full ADD dem_fraction_shift FLOAT(8, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET fraction_dem_shift = election2012_fraction_dem - election2008_fraction_dem;"""
+SET dem_fraction_shift = election2012_dem_fraction - election2008_dem_fraction;"""
     cur.execute(command_s)
 
     # unemployment_rate_shift
-    command_s = 'ALTER TABLE full ADD fraction_unemployment_shift FLOAT(8, 5);'
+    command_s = 'ALTER TABLE full ADD unemployment_fraction_shift FLOAT(8, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET fraction_unemployment_shift = (unemployment_rate_2012 - unemployment_rate_2008) / 100;"""
+SET unemployment_fraction_shift = (unemployment_rate_2012 - unemployment_rate_2008) / 100;"""
     cur.execute(command_s)
     
     # white_not_hispanic_fraction
@@ -131,10 +131,10 @@ SET population_change_fraction = (population_2013_estimate - population_2010_cen
     cur.execute(command_s)
 
     # population_density
-    command_s = 'ALTER TABLE full ADD population_density FLOAT(8, 5);'
+    command_s = 'ALTER TABLE full ADD population_density FLOAT(16, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET population_density = population_2013_estimate / land_area;"""
+SET population_density = ROUND(1000*population_2013_estimate/land_area)/1000;"""
     cur.execute(command_s)
     
     
