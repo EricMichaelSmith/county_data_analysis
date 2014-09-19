@@ -79,10 +79,10 @@ def main(con, cur):
                  'new_line_string': '\r\n',
                  'total_num_fields': 46,
                  'fields': {2: 'fips_column',
-                            5: '2008_to_2012_race_and_ethnicity__total',
-                            9: 'white_not_hispanic__number',
-                            11: 'black_not_hispanic__number',
-                            15: 'asian_not_hispanic__number',
+                            5: '2008_to_2012_race_and_ethnicity_total',
+                            9: 'white_not_hispanic_number',
+                            11: 'black_not_hispanic_number',
+                            15: 'asian_not_hispanic_number',
                             27: 'hispanic_number'}}},
                '2008_to_2012_social_characteristics':
                {'ACS_12_5YR_DP02_with_ann.csv':

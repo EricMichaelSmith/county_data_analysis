@@ -89,45 +89,45 @@ SET fraction_dem_shift = election2012_fraction_dem - election2008_fraction_dem;"
     cur.execute(command_s)
 
     # unemployment_rate_shift
-    command_s = 'ALTER TABLE full ADD unemployment_rate_shift FLOAT(8, 5);'
+    command_s = 'ALTER TABLE full ADD fraction_unemployment_shift FLOAT(8, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET unemployment_rate_shift = unemployment_rate_2012 - unemployment_rate_2008;"""
+SET fraction_unemployment_shift = (unemployment_rate_2012 - unemployment_rate_2008) / 100;"""
     cur.execute(command_s)
     
-    # white_not_hispanic__fraction
-    command_s = 'ALTER TABLE full ADD white_not_hispanic__fraction FLOAT(8, 5);'
+    # white_not_hispanic_fraction
+    command_s = 'ALTER TABLE full ADD white_not_hispanic_fraction FLOAT(8, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET white_not_hispanic__fraction = white_not_hispanic__number / 2008_to_2013_race_and_ethnicity__total;"""
+SET white_not_hispanic_fraction = white_not_hispanic_number / 2008_to_2012_race_and_ethnicity_total;"""
     cur.execute(command_s)
 
-    # black_not_hispanic__fraction
-    command_s = 'ALTER TABLE full ADD black_not_hispanic__fraction FLOAT(8, 5);'
+    # black_not_hispanic_fraction
+    command_s = 'ALTER TABLE full ADD black_not_hispanic_fraction FLOAT(8, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET black_not_hispanic__fraction = black_not_hispanic__number / 2008_to_2013_race_and_ethnicity__total;"""
+SET black_not_hispanic_fraction = black_not_hispanic_number / 2008_to_2012_race_and_ethnicity_total;"""
     cur.execute(command_s)
 
-    # asian_not_hispanic__fraction
-    command_s = 'ALTER TABLE full ADD asian_not_hispanic__fraction FLOAT(8, 5);'
+    # asian_not_hispanic_fraction
+    command_s = 'ALTER TABLE full ADD asian_not_hispanic_fraction FLOAT(8, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET asian_not_hispanic__fraction = asian_not_hispanic__number / 2008_to_2013_race_and_ethnicity__total;"""
+SET asian_not_hispanic_fraction = asian_not_hispanic_number / 2008_to_2012_race_and_ethnicity_total;"""
     cur.execute(command_s)
 
-    # hispanic__fraction
-    command_s = 'ALTER TABLE full ADD hispanic__fraction FLOAT(8, 5);'
+    # hispanic_fraction
+    command_s = 'ALTER TABLE full ADD hispanic_fraction FLOAT(8, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET hispanic__fraction = hispanic__number / 2008_to_2013_race_and_ethnicity__total;"""
+SET hispanic_fraction = hispanic_number / 2008_to_2012_race_and_ethnicity_total;"""
     cur.execute(command_s)
 
-    # population_change__fraction
-    command_s = 'ALTER TABLE full ADD population_change__fraction FLOAT(8, 5);'
+    # population_change_fraction
+    command_s = 'ALTER TABLE full ADD population_change_fraction FLOAT(8, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
-SET population_change__fraction = (population_2013_estimate - population_2010_census) / population_2010_census;"""
+SET population_change_fraction = (population_2013_estimate - population_2010_census) / population_2010_census;"""
     cur.execute(command_s)
 
     # population_density
