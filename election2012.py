@@ -73,16 +73,14 @@ SET election2012_fips=@col004, election2012_total_votes=@col011"""
     extract_votes(cur, 'Dem')
     extract_votes(cur, 'GOP')
     
-    # Create new table with only relevant columns
+    # Create new table with only relevant columns; sum all entries with the same FIPS code (since the New England states report vote totals by municipality instead of by city)
     cur.execute('DROP TABLE IF EXISTS election2012;')
     cur.execute("""CREATE TABLE election2012 AS
-(SELECT election2012_fips, election2012_total_votes,
-election2012_Dem, election2012_GOP FROM election2012_raw);""")
-
-    # Edit column names
-    cur.execute("""ALTER TABLE election2012
-CHANGE election2012_Dem election2012_dem INT,
-CHANGE election2012_GOP election2012_rep INT;""")
+(SELECT election2012_fips,
+    SUM(election2012_total_votes) AS election2012_total_votes,
+    SUM(election2012_Dem) AS election2012_dem,
+    SUM(election2012_GOP) AS election2012_rep FROM election2012_raw
+GROUP BY election2012_fips);""")
 
     # Print columns
 #    cur.execute('SHOW COLUMNS FROM election2012;')

@@ -16,7 +16,7 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-09-19: See your bookmark folder "2014-09-19 Multiple linear regression with cross-validation" for how to automatically implement CV-based feature selection on your feature set. Then, find some way to rank the best features for a regression model with n features. When you're done with all of that, see the OneNote page task list for other stuff to do.
+2014-09-19: Now that you know that tons of variables are very correlated with the voting shift, what's the best way to continue from here? Probably make a bar plot of all features and their p-values with confidence intervals, right? If you think it's best, see your bookmark folder "2014-09-19 Multiple linear regression with cross-validation" for how to automatically implement CV-based feature selection on your feature set. Then, find some way to rank the best features for a regression model with n features. See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features? When you're done with all of that, see the OneNote page task list for other stuff to do.
 """
 
 import MySQLdb

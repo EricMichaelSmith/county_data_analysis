@@ -31,7 +31,7 @@ def select_fields(con, cur, field_s_l, output_type='dictionary'):
     for field_s in field_s_l:
         command_s += field_s + ', '
     command_s = command_s[:-2] + ' FROM full;'
-    print(command_s)
+#    print(command_s)
     cur.execute(command_s)
     output_d_t = cur.fetchall()
     
