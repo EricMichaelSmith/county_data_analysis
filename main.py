@@ -16,7 +16,11 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-09-21: Do you have to be worried about all of those "Warning: Data truncated for column 'foo' at row ###" messages? Take a look into what they mean. Now that you know that tons of variables are very correlated with the voting shift, what's the best way to continue from here? Probably make a bar plot of all features and their p-values with confidence intervals, right? (Save all r-values into a column; write your own bootstrap function; use http://matplotlib.org/examples/color/colormaps_reference.html and http://matplotlib.org/examples/statistics/errorbar_demo.html to create a central dot for the r-value and errorbars for the 5th and 95th percentiles) If you think it's best, see your bookmark folder "2014-09-19 Multiple linear regression with cross-validation" for how to automatically implement CV-based feature selection on your feature set. Then, find some way to rank the best features for a regression model with n features. See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features? When you're done with all of that, see the OneNote page task list for other stuff to do.
+2014-09-21:
+- Maybe try making a shape plot with your database again just to confirm that all counties are still included?
+- [What are you going to do about the racial correlations that will inevitably come out of this? Maybe just remove the violent crime feature?] Probably make a bar plot of all features and their p-values with confidence intervals, right? (Save all r-values into a column; write your own bootstrap function; use http://matplotlib.org/examples/color/colormaps_reference.html and http://matplotlib.org/examples/statistics/errorbar_demo.html to create a central dot for the r-value and errorbars for the 5th and 95th percentiles)
+- If you think it's best, see your bookmark folder "2014-09-19 Multiple linear regression with cross-validation" for how to automatically implement CV-based feature selection on your feature set. Then, find some way to rank the best features for a regression model with n features. See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
+-When you're done with all of that, see the OneNote page task list for other stuff to do.
 """
 
 import MySQLdb
@@ -52,8 +56,8 @@ def main():
     create_database(con, cur)
     
     # Add derived features
-    add_derived_features(con, cur)
-    
+    utilities.add_derived_features(con, cur)
+        
     # Find confounding factors
     #confounding_factors.main(con, cur)
     
@@ -62,80 +66,6 @@ def main():
     con.close()
     
     return (con, cur)
-    
-    
-
-def add_derived_features(con, cur):
-    
-    # election2008_percent_dem
-    command_s = 'ALTER TABLE full ADD election2008_dem_fraction FLOAT(6, 5);'
-    cur.execute(command_s)
-    command_s = """UPDATE full
-SET election2008_dem_fraction = election2008_dem / election2008_total_votes;"""
-    cur.execute(command_s)    
-
-    # election2012_percent_dem
-    command_s = 'ALTER TABLE full ADD election2012_dem_fraction FLOAT(6, 5);'
-    cur.execute(command_s)
-    command_s = """UPDATE full
-SET election2012_dem_fraction = election2012_dem / election2012_total_votes;"""
-    cur.execute(command_s)    
-
-    # dem_shift
-    command_s = 'ALTER TABLE full ADD dem_fraction_shift FLOAT(8, 5);'
-    cur.execute(command_s)
-    command_s = """UPDATE full
-SET dem_fraction_shift = election2012_dem_fraction - election2008_dem_fraction;"""
-    cur.execute(command_s)
-
-    # unemployment_rate_shift
-    command_s = 'ALTER TABLE full ADD unemployment_fraction_shift FLOAT(8, 5);'
-    cur.execute(command_s)
-    command_s = """UPDATE full
-SET unemployment_fraction_shift = (unemployment_rate_2012 - unemployment_rate_2008) / 100;"""
-    cur.execute(command_s)
-    
-    # white_not_hispanic_fraction
-    command_s = 'ALTER TABLE full ADD white_not_hispanic_fraction FLOAT(8, 5);'
-    cur.execute(command_s)
-    command_s = """UPDATE full
-SET white_not_hispanic_fraction = white_not_hispanic_number / 2008_to_2012_race_and_ethnicity_total;"""
-    cur.execute(command_s)
-
-    # black_not_hispanic_fraction
-    command_s = 'ALTER TABLE full ADD black_not_hispanic_fraction FLOAT(8, 5);'
-    cur.execute(command_s)
-    command_s = """UPDATE full
-SET black_not_hispanic_fraction = black_not_hispanic_number / 2008_to_2012_race_and_ethnicity_total;"""
-    cur.execute(command_s)
-
-    # asian_not_hispanic_fraction
-    command_s = 'ALTER TABLE full ADD asian_not_hispanic_fraction FLOAT(8, 5);'
-    cur.execute(command_s)
-    command_s = """UPDATE full
-SET asian_not_hispanic_fraction = asian_not_hispanic_number / 2008_to_2012_race_and_ethnicity_total;"""
-    cur.execute(command_s)
-
-    # hispanic_fraction
-    command_s = 'ALTER TABLE full ADD hispanic_fraction FLOAT(8, 5);'
-    cur.execute(command_s)
-    command_s = """UPDATE full
-SET hispanic_fraction = hispanic_number / 2008_to_2012_race_and_ethnicity_total;"""
-    cur.execute(command_s)
-
-    # population_change_fraction
-    command_s = 'ALTER TABLE full ADD population_change_fraction FLOAT(8, 5);'
-    cur.execute(command_s)
-    command_s = """UPDATE full
-SET population_change_fraction = (population_2013_estimate - population_2010_census) / population_2010_census;"""
-    cur.execute(command_s)
-
-    # population_density
-    command_s = 'ALTER TABLE full ADD population_density FLOAT(16, 5);'
-    cur.execute(command_s)
-    command_s = """UPDATE full
-SET population_density = ROUND(1000*population_2013_estimate/land_area)/1000;"""
-    cur.execute(command_s)
     
     
 
@@ -176,6 +106,8 @@ INNER JOIN {table_name} ON fips.fips_fips = {table_name}.{table_name}_fips"""
             command_s += this_table_command_s
     command_s += ';'
     cur.execute(command_s)
+    
+    print('Database created.')
 
     # Print columns
 #    cur.execute('SHOW COLUMNS FROM full;')

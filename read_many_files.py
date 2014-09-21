@@ -37,6 +37,7 @@ Sources:
 - unemployment_statistics
     - From http://www.bls.gov/lau/tables.htm
     - laucntycur14.txt downloaded 2014-09-13, others downloaded 2014-02
+    - The data in the last 10 counties in Wyoming were corrupted, so I had to delete them manually.
 
 Suffixes at the end of variable names:
 a: numpy array
@@ -68,6 +69,7 @@ def main(con, cur):
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
                  'new_line_string': '\r\n',
+                 'null_string': '*****',
                  'total_num_fields': 219,
                  'fields': {2: 'fips_column',
                             179: 'median_age',
@@ -77,6 +79,7 @@ def main(con, cur):
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
                  'new_line_string': '\r\n',
+                 'null_string': '*****',
                  'total_num_fields': 46,
                  'fields': {2: 'fips_column',
                             5: '2008_to_2012_race_and_ethnicity_total',
@@ -89,6 +92,7 @@ def main(con, cur):
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
                  'new_line_string': '\r\n',
+                 'null_string': '(X)',
                  'total_num_fields': 600,
                  'fields': {2: 'fips_column',
                             55: 'households_with_children',
@@ -107,6 +111,7 @@ def main(con, cur):
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
                  'new_line_string': '\r\n',
+                 'null_string': None,
                  'total_num_fields': 10,
                  'fields': {2: 'fips_column',
                             5: 'population_2010_census',
@@ -116,6 +121,7 @@ def main(con, cur):
                 {'delimiter': None,
                  'lines_to_ignore': 0,
                  'new_line_string': '\r\n',
+                 'null_string': None,
                  'fields': {(1, 2): 'fips_state_column',
                             (4, 3): 'fips_county_column',
                             (35, 4): 'in_poverty',
@@ -125,6 +131,7 @@ def main(con, cur):
                 {'delimiter': r'\t',
                  'lines_to_ignore': 1,
                  'new_line_string': '\r\n',
+                 'null_string': None,
                  'total_num_fields': 10,
                  'fields': {2: 'fips_column',
                             7: 'land_area'}}},
@@ -133,6 +140,7 @@ def main(con, cur):
                 {'delimiter': ',',
                  'lines_to_ignore': 2,
                  'new_line_string': '\r\n',
+                 'null_string': '',
                  'total_num_fields': 324,
                  'fields': {1: 'fips_state_column',
                             2: 'fips_county_column',
@@ -147,6 +155,7 @@ def main(con, cur):
                 {'delimiter': None,
                  'lines_to_ignore': 6,
                  'new_line_string': '\r\n',
+                 'null_string': None,
                  'fields': {(19, 2): 'fips_state_column',
                             (26, 3): 'fips_county_column',
                             (129, 4): 'unemployment_rate_2008'}},
@@ -154,6 +163,7 @@ def main(con, cur):
                 {'delimiter': None,
                  'lines_to_ignore': 6,
                  'new_line_string': '\r\n',
+                 'null_string': None,
                  'fields': {(19, 2): 'fips_state_column',
                             (26, 3): 'fips_county_column',
                             (129, 4): 'unemployment_rate_2012'}}}}
@@ -205,12 +215,19 @@ IGNORE {lines_to_ignore} LINES"""
                 total_num_fields = field_d[folder_name][file_name]['total_num_fields']
                 command_s += utilities.construct_field_string(total_num_fields)
                 
-                # Add a list of field name correspondences
+                # Add a list of field name correspondences: set as NULL if necessary
                 command_s += """
 SET """
-                for field_num, field_name in \
-                    field_d[folder_name][file_name]['fields'].iteritems():
-                        command_s += '%s=@col%03d, ' % (field_name, field_num)
+                if field_d[folder_name][file_name]['null_string'] != None:
+                    null_string = field_d[folder_name][file_name]['null_string']
+                    for field_num, field_name in \
+                        field_d[folder_name][file_name]['fields'].iteritems():
+                            command_s += """%s = NULLIF(@col%03d, '%s'), """ % \
+                                (field_name, field_num, null_string)
+                else:
+                    for field_num, field_name in \
+                        field_d[folder_name][file_name]['fields'].iteritems():
+                            command_s += '%s = @col%03d, ' % (field_name, field_num)
                 command_s = command_s[:-2] + ';'
                             
             else:
