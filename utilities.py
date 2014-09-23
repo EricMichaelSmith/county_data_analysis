@@ -17,8 +17,12 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
+import numpy as np
+
 import config
 reload(config)
+import selecting
+reload(selecting)
 
 
 
@@ -141,6 +145,22 @@ def construct_field_string(num_columns):
     output_s = output_s[:-2] + ')'
     
     return output_s
+    
+    
+    
+def find_min_and_max_values(con, cur):
+    """ Prints the highest and lowest value of every feature. This is useful to make sure that there are no wacky values in the dataset. """
+    
+    # Load feature data
+    feature_s_l = config.feature_s_l
+    feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')
+    
+    # Print the highest and lowest values of each feature separately
+    for feature_s in feature_d:
+        is_none_b = np.equal(feature_d[feature_s], None)
+        sorted_l = sorted(np.array(feature_d[feature_s])[~is_none_b].tolist())
+        print('%s: lowest value = %0.4g, highest value = %0.4g' % \
+              (feature_s, sorted_l[0], sorted_l[-1]))
     
     
     

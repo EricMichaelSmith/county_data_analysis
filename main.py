@@ -17,9 +17,6 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
 2014-09-21:
-- Probably import unemployment data for the year 2013 and have it replace unemployment data from 2012 as a feature
-- Maybe try making a shape plot with your database again just to confirm that all counties are still included?
-- Look at the min and max of every feature just to make sure that there are no wacky values
 - [What are you going to do about the racial correlations that will inevitably come out of this? Maybe just remove the violent crime feature?] Probably make a bar plot of all features and their p-values with confidence intervals, right? (Save all r-values into a column; write your own bootstrap function; use http://matplotlib.org/examples/color/colormaps_reference.html and http://matplotlib.org/examples/statistics/errorbar_demo.html to create a central dot for the r-value and errorbars for the 5th and 95th percentiles)
 - If you think it's best, see your bookmark folder "2014-09-19 Multiple linear regression with cross-validation" for how to automatically implement CV-based feature selection on your feature set. Then, find some way to rank the best features for a regression model with n features. See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
 -When you're done with all of that, see the OneNote page task list for other stuff to do.

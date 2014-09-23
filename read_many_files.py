@@ -34,10 +34,10 @@ Sources:
     - Downloaded 2014-05-04
 - 2014_health_indicators
     - Available from http://www.countyhealthrankings.org/rankings/data, a program from Robert Wood Johnson
+    - The data in the last 10 counties in Wyoming were corrupted, so I had to delete them manually.
 - unemployment_statistics
     - From http://www.bls.gov/lau/tables.htm
-    - laucntycur14.txt downloaded 2014-09-13, others downloaded 2014-02
-    - The data in the last 10 counties in Wyoming were corrupted, so I had to delete them manually.
+    - laucntycur14.txt downloaded 2014-09-13, laucntycur13.txt downloaded 2014-09-22, others downloaded 2014-02
 
 Suffixes at the end of variable names:
 a: numpy array
@@ -166,7 +166,15 @@ def main(con, cur):
                  'null_string': None,
                  'fields': {(19, 2): 'fips_state_column',
                             (26, 3): 'fips_county_column',
-                            (129, 4): 'unemployment_rate_2012'}}}}
+                            (129, 4): 'unemployment_rate_2012'}},
+                'laucnty13.txt':
+                {'delimiter': None,
+                 'lines_to_ignore': 6,
+                 'new_line_string': '\r\n',
+                 'null_string': None,
+                 'fields': {(19, 2): 'fips_state_column',
+                            (26, 3): 'fips_county_column',
+                            (129, 4): 'unemployment_rate_2013'}}}}
                  
                  
     ## Read in files
