@@ -134,6 +134,15 @@ SET population_density = ROUND(1000*population_2013_estimate/land_area)/1000;"""
     
 
 
+def bootstrap(fun, data_length, confidence_interval=0.95, num_samples=1000):
+    """ {{{write this}}} """
+    
+    rand_a = np.random.randint(0, data_length, (data_length, num_samples)
+    
+    
+    
+
+
 def construct_field_string(num_columns):
     """
     Constructs a string ("(@col001, @col002,...)") for use in specifying fields in SQL queries.
