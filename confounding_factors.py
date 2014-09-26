@@ -24,6 +24,8 @@ import config
 reload(config)
 import selecting
 reload(selecting)
+import utilities
+reload(utilities)
 
 
 
@@ -37,21 +39,38 @@ def main(con, cur):
     feature_s_l = config.feature_s_l
     feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')
     
-    # Run linear regresson on each feature separately
-    r_value_central_d = {}
+    # Run linear regression on each feature separately
+    r_value_mean_d = {}
     r_value_5th_percentile_d = {}
+    r_value_50th_percentile_d = {}
     r_value_95th_percentile_d = {}
     for key_s in feature_d:
         is_none_b_a = np.equal(feature_d[key_s], None)
-        slope, intercept, r_value_central_d[key_s], p_value, std_err = \
-            stats.linregress(np.array(feature_d[key_s])[~is_none_b_a].tolist(),
-                             np.array(explanatory_d[explanatory_s])[~is_none_b_a].tolist())
+        feature1_a = np.array(feature_d[key_s])[~is_none_b_a]
+        feature2_a = np.array(explanatory_d[explanatory_s])[~is_none_b_a]
+        slope, intercept, r_value_mean_d[key_s], p_value, std_err = \
+            stats.linregress(np.array(feature1_a.tolist()),
+                             np.array(feature2_a.tolist()))
         print('%s: r-value = %0.2f, p-value = %0.3g' % \
-            (key_s, r_value_central_d[key_s], p_value))
+              (key_s, r_value_mean_d[key_s], p_value))
             
         # Run bootstrap to find r-value confidence interval for each feature and
         # the output variable
-        #{{{}}}
+        (r_value_5th_percentile_d[key_s],
+         r_value_50th_percentile_d[key_s],
+         r_value_95th_percentile_d[key_s]) = \
+        utilities.bootstrap_confidence_interval(regression_confidence_interval_wrapper,
+                                                sum(is_none_b_a),
+                                                con,
+                                                cur,
+                                                feature1_a,
+                                                feature2_a,
+                                                confidence_level=0.95,
+                                                num_samples=1000)
+        print('s: r-value range: %0.2f, %0.2f, %0.2f' % \
+              (r_value_5th_percentile_d[key_s],
+               r_value_50th_percentile_d[key_s],
+               r_value_95th_percentile_d[key_s]))
             
             
             

@@ -149,6 +149,7 @@ def bootstrap_confidence_interval(fun, data_length, confidence_level=0.95,
             sorted_value_l[i_upper_bound])
 
 
+
 def construct_field_string(num_columns):
     """
     Constructs a string ("(@col001, @col002,...)") for use in specifying fields in SQL queries.
