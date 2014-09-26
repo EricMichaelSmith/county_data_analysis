@@ -60,7 +60,7 @@ def main(con, cur):
          r_value_50th_percentile_d[key_s],
          r_value_95th_percentile_d[key_s]) = \
         utilities.bootstrap_confidence_interval(regression_confidence_interval_wrapper,
-                                                sum(is_none_b_a),
+                                                sum(~is_none_b_a),
                                                 con,
                                                 cur,
                                                 feature1_a,
