@@ -134,13 +134,19 @@ SET population_density = ROUND(1000*population_2013_estimate/land_area)/1000;"""
     
 
 
-def bootstrap(fun, data_length, confidence_interval=0.95, num_samples=1000):
-    """ {{{write this}}} """
+def bootstrap_confidence_interval(fun, data_length, confidence_level=0.95,
+                                  num_samples=1000, *args):
+    """ For num_samples samples, chooses with replacement from a data set of length data_length and calculates a value using function fun(). Returns the lower bound, mean, and upper bound of a confidence interval at a level of confidence_level. """
     
-    rand_a = np.random.randint(0, data_length, (data_length, num_samples)
-    
-    
-    
+    rand_a = np.random.randint(0, data_length, (num_samples, data_length))
+    value_l = [fun(row, *args) for row in rand_a]
+    sorted_value_l = sorted(value_l)
+    i_lower_bound = round(num_samples * (1/2 - confidence_level/2))
+    i_mean = round(num_samples/2)
+    i_upper_bound = round(num_samples * (1/2 + confidence_level/2))
+    return (sorted_value_l[i_lower_bound],
+            sorted_value_l[i_mean],
+            sorted_value_l[i_upper_bound])
 
 
 def construct_field_string(num_columns):

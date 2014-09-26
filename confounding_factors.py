@@ -42,9 +42,22 @@ def main(con, cur):
     r_value_5th_percentile_d = {}
     r_value_95th_percentile_d = {}
     for key_s in feature_d:
-        is_none_b = np.equal(feature_d[key_s], None)
+        is_none_b_a = np.equal(feature_d[key_s], None)
         slope, intercept, r_value_central_d[key_s], p_value, std_err = \
-            stats.linregress(np.array(feature_d[key_s])[~is_none_b].tolist(),
-                             np.array(explanatory_d[explanatory_s])[~is_none_b].tolist())
+            stats.linregress(np.array(feature_d[key_s])[~is_none_b_a].tolist(),
+                             np.array(explanatory_d[explanatory_s])[~is_none_b_a].tolist())
         print('%s: r-value = %0.2f, p-value = %0.3g' % \
             (key_s, r_value_central_d[key_s], p_value))
+            
+        # Run bootstrap to find r-value confidence interval for each feature and
+        # the output variable
+        #{{{}}}
+            
+            
+            
+def regression_confidence_interval_wrapper(index_l, con, cur, feature1_a, feature2_a):
+    """ {{{write this!!!}}} """
+    
+    slope, intercept, r_value, p_value, std_err = \
+        stats.linregress(feature1_a[index_l].tolist(), feature2_a[index_l].tolist())
+    return r_value
