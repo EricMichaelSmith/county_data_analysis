@@ -17,6 +17,7 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
 
@@ -77,6 +78,25 @@ def main(con, cur):
     feature_by_r_value_l = [feature_by_r_value_d[r_value] for r_value in \
         sorted(r_value_d.itervalues())]
     print(feature_by_r_value_l)
+    
+    # Plot the r-values of all features
+    fig, axes = plt.subplots(nrows=len(feature_by_r_value_l))
+    fig.subplots_adjust(top=0.97, bottom=0.03, left=0.2, right=0.99)
+    axes[0].set_title('Pearson''s r of feature and Obama vote shift')
+    text_pos_x = -0.25
+    text_pos_y = 0.00
+    for ax, feature_s in zip(axes, reversed(feature_by_r_value_l)):
+        ax.set_axis_bgcolor((1.0, 0.9, 0.9))
+        ax.scatter([r_value_d[feature_s]], [0], c=(0,0,0))
+        width_to_left = r_value_d[feature_s] - r_value_5th_percentile_d[feature_s]
+        width_to_right = r_value_95th_percentile_d[feature_s] - r_value_d[feature_s]
+        ax.errorbar([r_value_d[feature_s]], [0], xerr=[width_to_left, width_to_right])
+        plt.xlim([-1, 1])
+        plt.ylim([-1, 1])
+        ax.text(text_pos_x, text_pos_y, feature_s, va='center', ha='left',
+                fontsize=10)
+        ax.set_axis_off()
+    plt.show()
             
             
             
