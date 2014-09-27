@@ -40,7 +40,7 @@ def main(con, cur):
     feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')
     
     # Run linear regression on each feature separately
-    r_value_mean_d = {}
+    r_value_d = {}
     r_value_5th_percentile_d = {}
     r_value_50th_percentile_d = {}
     r_value_95th_percentile_d = {}
@@ -48,11 +48,11 @@ def main(con, cur):
         is_none_b_a = np.equal(feature_d[key_s], None)
         feature1_a = np.array(feature_d[key_s])[~is_none_b_a]
         feature2_a = np.array(explanatory_d[explanatory_s])[~is_none_b_a]
-        slope, intercept, r_value_mean_d[key_s], p_value, std_err = \
+        slope, intercept, r_value_d[key_s], p_value, std_err = \
             stats.linregress(np.array(feature1_a.tolist()),
                              np.array(feature2_a.tolist()))
         print('%s: r-value = %0.2f, p-value = %0.3g' % \
-              (key_s, r_value_mean_d[key_s], p_value))
+              (key_s, r_value_d[key_s], p_value))
             
         # Run bootstrap to find r-value confidence interval for each feature and
         # the output variable
@@ -67,10 +67,16 @@ def main(con, cur):
                                                 feature2_a,
                                                 confidence_level=0.95,
                                                 num_samples=1000)
-        print('s: r-value range: %0.2f, %0.2f, %0.2f' % \
-              (r_value_5th_percentile_d[key_s],
-               r_value_50th_percentile_d[key_s],
-               r_value_95th_percentile_d[key_s]))
+#        print('s: r-value range: %0.2f, %0.2f, %0.2f' % \
+#              (r_value_5th_percentile_d[key_s],
+#               r_value_50th_percentile_d[key_s],
+#               r_value_95th_percentile_d[key_s]))
+               
+    # Get list of features sorted by r-value (this will not work if r-values are not unique)
+    feature_by_r_value_d = {y:x for x, y in r_value_d.iteritems()}
+    feature_by_r_value_l = [feature_by_r_value_d[r_value] for r_value in \
+        sorted(r_value_d.itervalues())]
+    print(feature_by_r_value_l)
             
             
             
