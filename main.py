@@ -16,10 +16,13 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-09-27:
-- What are you going to do about the racial correlations that will inevitably come out of this? Maybe just remove the violent crime feature?
-- If you think it's best, see your bookmark folder "2014-09-19 Multiple linear regression with cross-validation" for how to automatically implement CV-based feature selection on your feature set. Then, find some way to rank the best features for a regression model with n features. See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
--When you're done with all of that, see the OneNote page task list for other stuff to do.
+2014-09-28:
+- Feature selection results: white_not_hispanic_fraction, unemployment_fraction_shift, black_not_hispanic_fraction, asian_not_hispanic_fraction, obese, percent_non_senior_citizens_without_insurance, population_change_fraction
+- Figure out what the feature-selection results mean. Maybe find some way to rank the best features for a regression model with n features? See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
+- Run lasso and ridge regression on your data, right?
+- In article, find something that backs up your finding that whites left Obama in droves (call it the Matt Damon effect? Or just be very careful about this...)
+- Before posting, search the code for "{{{" and "[[[" and "((("
+- When you're done with all of that, see the OneNote page task list for other stuff to do.
 """
 
 import MySQLdb
