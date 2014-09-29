@@ -157,6 +157,10 @@ def recursive_feature_elimination(con, cur, feature_d, explanatory_d):
     i_selected_features_a = rfecv.get_support(indices=True)
     for i in i_selected_features_a:
         print('Selected feature: %s' % ordered_feature_s_l[i])
+    print('Ranking of features:')
+    print(rfecv.ranking_)
+    print('Score:')
+    print(rfecv.score(X, y))
     
     # Plot number of features VS. cross-validation scores
     plt.figure()
