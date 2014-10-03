@@ -18,6 +18,7 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
 2014-10-03:
 - Unregularized linear-regression cross-validation feature selection results: white_not_hispanic_fraction, unemployment_fraction_shift, black_not_hispanic_fraction, asian_not_hispanic_fraction, obese, percent_non_senior_citizens_without_insurance, population_change_fraction
+- Try running all your regressions on one feature, then two, etc., to see how they work
 - Why is the coefficient of unemployment_fraction_shift negative? And how do you reconcile the shift rankings with what you know from the univariate linear regressions? Does any of this make sense?
 - Why are your lasso and elastic net models failing?
 - Which is better: normalizing vs. not normalizing?
