@@ -157,6 +157,18 @@ def pearsons_r_analysis(con, cur, feature_d, output_d):
     # Show and save plot
     plt.show()
     plt.savefig(os.path.join(config.output_path_s, 'feature_r_values.png'))
+    
+    
+
+def print_coefficients(coeff_l, ordered_feature_s_l):
+    """ Prints a ranked list of all features and their coefficients. """
+
+    coeff_magnitude_l = [abs(i) for i in coeff_l]
+    i_sorted_coefficients_l = [i[0] for i in sorted(enumerate(coeff_magnitude_l),
+                                                    key=lambda x:x[1])]
+    print('Feature ranking:')
+    for i_feature in i_sorted_coefficients_l[::-1]:
+        print('    %s: %0.3g' % (ordered_feature_s_l[i_feature], coeff_l[i_feature]))
 
 
 
@@ -188,21 +200,51 @@ def recursive_feature_elimination(con, cur, X, ordered_feature_s_l, y):
 
 
 def regularized_regression(con, cur, feature_a, ordered_feature_s_l, output_a):
+    """ Runs regularized linear regressions on all features. """
+    
+    # Output features for reference
+#    print('Features:')
+#    for l_feature, feature_s in enumerate(ordered_feature_s_l):
+#        print('(%d) %s' % (l_feature, feature_s))
 
-    for normalized_b in (False, True):
+    for normalize_b in (False, True):
         
-        if normalized_b:
+        if normalize_b:
             print('Regressors normalized.')
         else:
             print('Regressors not normalized.')
+            
+        # Ordinary least squares
+        clf = linear_model.LinearRegression()
+        clf.fit(feature_a, output_a)
+        print('Ordinary least squares: R^2 = %0.2f' % clf.score(feature_a, output_a))
+        print_coefficients(clf.coef_, ordered_feature_s_l)
     
         # Ridge regression with generalized cross-validation
-        alpha_l = [0.1, 1.0, 10.0]
-        clf = linear_model.RidgeCV(alphas=alpha_l)
+        alpha_l = np.logspace(-5, 5, num=11).tolist()
+        clf = linear_model.RidgeCV(alphas=alpha_l, normalize=normalize_b)
         clf.fit(feature_a, output_a)
-        # {{{add optional fields to RidgeCV, do the rest of the stuff and the output}}}
+        print('Ridge: R^2 = %0.2f, alpha = %0.1g' % (clf.score(feature_a, output_a),
+              clf.alpha_))
+        print_coefficients(clf.coef_, ordered_feature_s_l)
         
-        # {{{lasso, elastic net}}}
+        # Lasso regression with generalized cross-validation
+        alpha_l = np.logspace(-5, 5, num=11).tolist()
+        clf = linear_model.LassoCV(alphas=alpha_l, normalize=normalize_b)
+        clf.fit(feature_a, output_a)
+        print('Lasso: R^2 = %0.2f, alpha = %0.1g' % (clf.score(feature_a, output_a),
+              clf.alpha_))
+        print_coefficients(clf.coef_, ordered_feature_s_l)
+        
+        # Elastic net regression with generalized cross-validation
+        l1_ratio_l = [.1, .5, .7, .9, .95, .99, 1]
+        alpha_l = np.logspace(-5, 5, num=11).tolist()
+        clf = linear_model.ElasticNetCV(l1_ratio=l1_ratio_l, alphas=alpha_l,
+                                        normalize=normalize_b)
+        clf.fit(feature_a, output_a)
+        print('Elastic net: R^2 = %0.2f, l1_ratio = %0.2f, alpha = %0.1g' %
+              (clf.score(feature_a, output_a), clf.l1_ratio_, clf.alpha_))
+        print_coefficients(clf.coef_, ordered_feature_s_l)
     
 
 

@@ -16,10 +16,11 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-09-28:
-- Feature selection results: white_not_hispanic_fraction, unemployment_fraction_shift, black_not_hispanic_fraction, asian_not_hispanic_fraction, obese, percent_non_senior_citizens_without_insurance, population_change_fraction
-- Run lasso, and ridge, and elastic net regularization (or SVR?) on your regression on your data
-- Try normalizing vs. not normalizing
+2014-10-03:
+- Unregularized linear-regression cross-validation feature selection results: white_not_hispanic_fraction, unemployment_fraction_shift, black_not_hispanic_fraction, asian_not_hispanic_fraction, obese, percent_non_senior_citizens_without_insurance, population_change_fraction
+- Why is the coefficient of unemployment_fraction_shift negative? And how do you reconcile the shift rankings with what you know from the univariate linear regressions? Does any of this make sense?
+- Why are your lasso and elastic net models failing?
+- Which is better: normalizing vs. not normalizing?
 - Also try AIC and BIC?
 - Try re-creating the feature-selection results by building your own leave-one-out model. Maybe find some way to rank the best features for a regression model with n features? See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
 - In addition to leave-one-out, try regression with add-one-in
