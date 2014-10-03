@@ -20,6 +20,7 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 - Feature selection results: white_not_hispanic_fraction, unemployment_fraction_shift, black_not_hispanic_fraction, asian_not_hispanic_fraction, obese, percent_non_senior_citizens_without_insurance, population_change_fraction
 - Run lasso, and ridge, and elastic net regularization (or SVR?) on your regression on your data
 - Try normalizing vs. not normalizing
+- Also try AIC and BIC?
 - Try re-creating the feature-selection results by building your own leave-one-out model. Maybe find some way to rank the best features for a regression model with n features? See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
 - In addition to leave-one-out, try regression with add-one-in
 - In article, find something that backs up your finding that whites left Obama in droves (call it the Matt Damon effect? Or just be very careful about this...)

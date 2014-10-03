@@ -34,35 +34,67 @@ reload(utilities)
 
 def main(con, cur):
     
-    # Load explanatory variable data
-    explanatory_s = 'dem_fraction_shift'
-    explanatory_d = selecting.select_fields(con, cur, [explanatory_s], output_type='dictionary')
+    # Load output variable data
+    output_s = 'dem_fraction_shift'
+    output_d = selecting.select_fields(con, cur, [output_s], output_type='dictionary')
     
     # Load feature data
     feature_s_l = config.feature_s_l
     feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')    
     
     # Find and plot r-value of each feature with dem_fraction_shift
-#    pearsons_r_analysis(con, cur, feature_d, explanatory_d)  
+#    pearsons_r_analysis(con, cur, feature_d, output_d)  
+    
+    # Create feature and output variable arrays to be used in regression models
+    feature_a, ordered_feature_s_l, output_a = create_arrays(feature_d, output_d)
     
     # Run recursive feature elimination with cross-validation
-    recursive_feature_elimination(con, cur, feature_d, explanatory_d)
+#    recursive_feature_elimination(con, cur, feature_a, ordered_feature_s_l, output_a)
     
-            
-            
-def pearsons_r_analysis(con, cur, feature_d, explanatory_d):
-    """ Find and plot r-value of each feature (in feature_d) with dem_fraction_shift (in explanatory_d) """
+    # Run regression with regularization
+    regularized_regression(con, cur, feature_a, ordered_feature_s_l, output_a)
+
+
+
+def create_arrays(feature_d, output_d):
+    """ Transform the input and output data from dicts into arrays """
+    
+    # Transform feature dataset
+    feature_s_l = feature_d.keys()
+    feature_a = np.array(feature_d[feature_s_l[0]], ndmin=2).T
+    ordered_feature_s_l = [feature_s_l[0]]
+    for feature_s in feature_s_l[1:]:
+        feature_a = np.concatenate((feature_a, np.array(feature_d[feature_s],
+                                    ndmin=2).T), axis=1)
+        ordered_feature_s_l.append(feature_s)
+        
+    # Transform output dataset
+    output_s = output_d.keys()[0]
+    output_a = np.array(output_d[output_s])
+    
+    # Select only observations without Nones
+    is_none_b_a = np.equal(feature_a, None)
+    no_none_features_b_a = (np.sum(is_none_b_a, axis=1) == 0)
+    feature_a = feature_a[no_none_features_b_a,]
+    output_a = output_a[no_none_features_b_a]
+    
+    return (feature_a, ordered_feature_s_l, output_a)
+    
+
+
+def pearsons_r_analysis(con, cur, feature_d, output_d):
+    """ Find and plot r-value of each feature (in feature_d) with dem_fraction_shift (in output_d) """
     
     # Run linear regression on each feature separately
     r_value_d = {}
     r_value_5th_percentile_d = {}
     r_value_50th_percentile_d = {}
     r_value_95th_percentile_d = {}
-    explanatory_s = explanatory_d.keys()[0]
+    output_s = output_d.keys()[0]
     for key_s in feature_d:
         is_none_b_a = np.equal(feature_d[key_s], None)
         feature1_a = np.array(feature_d[key_s])[~is_none_b_a]
-        feature2_a = np.array(explanatory_d[explanatory_s])[~is_none_b_a]
+        feature2_a = np.array(output_d[output_s])[~is_none_b_a]
         slope, intercept, r_value_d[key_s], p_value, std_err = \
             stats.linregress(np.array(feature1_a.tolist()),
                              np.array(feature2_a.tolist()))
@@ -128,26 +160,8 @@ def pearsons_r_analysis(con, cur, feature_d, explanatory_d):
 
 
 
-def recursive_feature_elimination(con, cur, feature_d, explanatory_d):
+def recursive_feature_elimination(con, cur, X, ordered_feature_s_l, y):
     """ Run recursive feature elimination with cross-validation {{{write this}}}. Template from http://scikit-learn.org/stable/auto_examples/plot_rfe_with_cross_validation.html. """
-    
-    # Transform feature dataset
-    feature_s_l = feature_d.keys()
-    X = np.array(feature_d[feature_s_l[0]], ndmin=2).T
-    ordered_feature_s_l = [feature_s_l[0]]
-    for feature_s in feature_s_l[1:]:
-        X = np.concatenate((X, np.array(feature_d[feature_s], ndmin=2).T), axis=1)
-        ordered_feature_s_l.append(feature_s)
-        
-    # Transform output dataset
-    explanatory_s = explanatory_d.keys()[0]
-    y = np.array(explanatory_d[explanatory_s])
-    
-    # Select only rows without Nones
-    is_none_b_a = np.equal(X, None)
-    no_none_features_b_a = (np.sum(is_none_b_a, axis=1) == 0)
-    X = X[no_none_features_b_a,]
-    y = y[no_none_features_b_a]
     
     # Create recursive feature elimination and fit to data
     regr = linear_model.LinearRegression()
@@ -170,6 +184,25 @@ def recursive_feature_elimination(con, cur, feature_d, explanatory_d):
     plt.show()
     
     # {{{figure out which features are most useful, by how much, and plot this in the best way}}}
+    
+
+
+def regularized_regression(con, cur, feature_a, ordered_feature_s_l, output_a):
+
+    for normalized_b in (False, True):
+        
+        if normalized_b:
+            print('Regressors normalized.')
+        else:
+            print('Regressors not normalized.')
+    
+        # Ridge regression with generalized cross-validation
+        alpha_l = [0.1, 1.0, 10.0]
+        clf = linear_model.RidgeCV(alphas=alpha_l)
+        clf.fit(feature_a, output_a)
+        # {{{add optional fields to RidgeCV, do the rest of the stuff and the output}}}
+        
+        # {{{lasso, elastic net}}}
     
 
 
