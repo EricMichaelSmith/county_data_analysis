@@ -18,15 +18,15 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
 2014-10-04:
 - Rebuild the database on your desktop to add those WY counties
-- Make another graph of the r-value for each value separately, this time with all features sorted by the *magnitude* of R and not the signed value; probably give the r-value to the right in green or red depending on sign
-- Just to explore your features, probably run a pairwise correlation between each of them, right?
+- Just to explore your features, probably run a pairwise correlation between each of them and make a plot of that, right?
+- Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' fealty to Obama; but then, of course, you have to explain all of the features clearly and put units on them
 - Are you satisfied now with your understanding of how the regression models work? Think about all of this some more...
 - Is it obvious that the R-value of all four models should be the same? Probably see what decimal place they're the same to.
 - How do you reconcile the shift rankings with what you know from the univariate linear regressions? Does any of this make sense?
 - Also try AIC and BIC?
 - Try re-creating the feature-selection results by building your own leave-one-out model. Maybe find some way to rank the best features for a regression model with n features? See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
-- In addition to leave-one-out, try regression with add-one-in
 - In article, find something that backs up your finding that whites left Obama in droves (call it the Matt Damon effect? Or just be very careful about this...)
+- Maybe put the various scripts that you call in confounding_factors.main() in some kind of logical order?
 - Before posting, search the code for "{{{" and "[[[" and "((("
 - When you're done with all of that, see the OneNote page task list for other stuff to do.
 """

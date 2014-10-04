@@ -48,7 +48,10 @@ def main(con, cur):
     feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')    
     
     # Find and plot r-value of each feature with dem_fraction_shift
-#    pearsons_r_analysis(con, cur, feature_d, output_d)  
+    feature_by_r_value_s_l = pearsons_r_analysis(feature_d, output_d)
+    
+    # Plot pairwise r-values of all features in a heat map
+    pearsons_r_heat_map(feature_d, feature_by_r_value_s_l)
     
     # Create feature and output variable arrays to be used in regression models
     feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
@@ -65,18 +68,52 @@ def main(con, cur):
 #    print(feature_a.shape)
     
     # Print ordered list of features used in regression models
-    for i_feature, feature_s in enumerate(ordered_feature_s_l):
-        print('%d: %s' % (i_feature, feature_s))
+#    for i_feature, feature_s in enumerate(ordered_feature_s_l):
+#        print('%d: %s' % (i_feature, feature_s))
     
     # Run recursive feature elimination with cross-validation
-#    recursive_feature_elimination(con, cur, feature_a, ordered_feature_s_l, output_a)
+#    recursive_feature_elimination(feature_a, ordered_feature_s_l, output_a)
     
     # Run regression with regularization
-    regularized_regression(con, cur, feature_a, ordered_feature_s_l, output_a)
-#    i_features_to_fit_l = [4, 6]
-#    regularized_regression(con, cur, feature_a[:, i_features_to_fit_l],
-#                           [ordered_feature_s_l[i] for i in i_features_to_fit_l],
-#                           output_a)
+#    regularized_regression(feature_a, ordered_feature_s_l, output_a)
+    
+    # Run additive regression model
+#    additive_regression_model(feature_a, ordered_feature_s_l, output_a)
+
+
+
+def additive_regression_model(feature_a, ordered_feature_s_l, output_a):
+    """ Builds a multivariate linear regression by iteratively adding the feature that will most increase the R^2 value. """
+    
+    i_unselected_feature_l = range(0, feature_a.shape[1])
+
+    # Select the feature most correlated with dem_fraction_shift
+    r_squared_l = []
+    for i_feature in i_unselected_feature_l:
+        clf = linear_model.LinearRegression()
+        clf.fit(np.expand_dims(feature_a[:, i_feature], axis=1), output_a)
+        r_squared_l.append(clf.score(np.expand_dims(feature_a[:, i_feature], axis=1),
+                                     output_a))
+    i_most_correlated_feature = \
+        i_unselected_feature_l[r_squared_l.index(max(r_squared_l))]
+    print('Most correlated feature: %s\n    R^2 = %0.5f' %
+          (ordered_feature_s_l[i_most_correlated_feature], max(r_squared_l)))
+    i_selected_feature_l = [i_most_correlated_feature]
+    i_unselected_feature_l.remove(i_most_correlated_feature)
+    
+    while len(i_unselected_feature_l):
+        r_squared_l = []
+        for i_feature in i_unselected_feature_l:
+            clf = linear_model.LinearRegression()
+            clf.fit(feature_a[:, i_selected_feature_l+[i_feature]], output_a)
+            r_squared_l.append(clf.score(feature_a[:, i_selected_feature_l+[i_feature]],
+                                         output_a))
+        i_most_correlated_feature = \
+            i_unselected_feature_l[r_squared_l.index(max(r_squared_l))]
+        print('Next most correlated feature: %s\n    R^2 = %0.5f' %           
+              (ordered_feature_s_l[i_most_correlated_feature], max(r_squared_l)))
+        i_selected_feature_l.append(i_most_correlated_feature)
+        i_unselected_feature_l.remove(i_most_correlated_feature)
 
 
 
@@ -109,7 +146,7 @@ def create_arrays(feature_d, output_d):
     
 
 
-def pearsons_r_analysis(con, cur, feature_d, output_d):
+def pearsons_r_analysis(feature_d, output_d):
     """ Find and plot r-value of each feature (in feature_d) with dem_fraction_shift (in output_d) """
     
     # Run linear regression on each feature separately
@@ -135,8 +172,6 @@ def pearsons_r_analysis(con, cur, feature_d, output_d):
          r_value_95th_percentile_d[key_s]) = \
         utilities.bootstrap_confidence_interval(regression_confidence_interval_wrapper,
                                                 sum(~is_none_b_a),
-                                                con,
-                                                cur,
                                                 feature1_a,
                                                 feature2_a,
                                                 confidence_level=0.95,
@@ -148,17 +183,18 @@ def pearsons_r_analysis(con, cur, feature_d, output_d):
                
     # Get list of features sorted by r-value (this will not work if r-values are not unique)
     feature_by_r_value_d = {y:x for x, y in r_value_d.iteritems()}
-    feature_by_r_value_l = [feature_by_r_value_d[r_value] for r_value in \
-        sorted(r_value_d.itervalues())]
+    sorted_r_value_l = sorted([i for i in r_value_d.itervalues()], key=abs)
+    feature_by_r_value_s_l = [feature_by_r_value_d[r_value] for r_value in \
+        sorted_r_value_l]
     
     
     ## Plot the r-values of all features
-    num_features = len(feature_by_r_value_l)
-    ax = plt.figure(figsize=(10, 0.5*len(feature_by_r_value_l))).add_subplot(1, 1, 1)
+    num_features = len(feature_by_r_value_s_l)
+    ax = plt.figure(figsize=(10, 0.5*len(feature_by_r_value_s_l))).add_subplot(1, 1, 1)
     
     # Plot the point and error bar, as well as guide lines
     ax.plot([0, 0], [0, num_features+1], c=(1, 0, 0))
-    for l_feature, feature_s in enumerate(feature_by_r_value_l):
+    for l_feature, feature_s in enumerate(feature_by_r_value_s_l):
         
         # For unemployment_fraction_shift, highlight region in yellow
         if feature_s == 'unemployment_fraction_shift':
@@ -171,19 +207,40 @@ def pearsons_r_analysis(con, cur, feature_d, output_d):
         ax.errorbar([r_value_d[feature_s]], [l_feature+1],
                     xerr=np.array([[width_to_left], [width_to_right]]),
                     ecolor=(0,0,0))
+        if r_value_d[feature_s] >= 0:
+            text_color_t = (0, 0.5, 0)
+            text_s = '+%0.2f' % r_value_d[feature_s]
+        else:
+            text_color_t = (0.5, 0, 0)
+            text_s = '%0.2f' % r_value_d[feature_s]
+        ax.text(0.90, l_feature+1, text_s, color=text_color_t,
+                horizontalalignment='right', verticalalignment='center')
                     
     # Configure axes
-    ax.set_position([0.43, 0.05, 0.55, 0.93])
+    ax.set_position([0.43, 0.05, 0.54, 0.93])
     ax.set_xlim([-1, 1])
     ax.set_xticks(np.arange(-1, 1.25, 0.25).tolist())
     ax.set_xlabel("""Pearson's r between feature and Obama vote shift""")
     ax.set_ylim([0.5, num_features+0.5])
     ax.set_yticks(np.arange(1, num_features+1, 1).tolist())
-    ax.set_yticklabels(feature_by_r_value_l)
+#    feature_by_r_value_s_l = [feature_s + ' (+%0.2f)' % sorted_r_value_l[i]
+#                              if sorted_r_value_l[i] >= 0
+#                              else feature_s + ' (%0.2f)' % sorted_r_value_l[i]
+#                              for i, feature_s in enumerate(feature_by_r_value_s_l)]
+    ax.set_yticklabels(feature_by_r_value_s_l)
     
     # Show and save plot
     plt.show()
     plt.savefig(os.path.join(config.output_path_s, 'feature_r_values.png'))
+    
+    return feature_by_r_value_s_l
+    
+    
+    
+def pearsons_r_heat_map(feature_d, feature_by_r_value_s_l):
+    """ Plots a heatmap of the pairwise correlation coefficient between all features. """
+    
+    # {{{do this}}}
     
     
 
@@ -199,7 +256,7 @@ def print_coefficients(coeff_l, ordered_feature_s_l):
 
 
 
-def recursive_feature_elimination(con, cur, X, ordered_feature_s_l, y):
+def recursive_feature_elimination(X, ordered_feature_s_l, y):
     """ Run recursive feature elimination with cross-validation {{{write this}}}. Template from http://scikit-learn.org/stable/auto_examples/plot_rfe_with_cross_validation.html. """
     
     # Create recursive feature elimination and fit to data
@@ -222,11 +279,9 @@ def recursive_feature_elimination(con, cur, X, ordered_feature_s_l, y):
     plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
     plt.show()
     
-    # {{{figure out which features are most useful, by how much, and plot this in the best way}}}
-    
 
 
-def regularized_regression(con, cur, feature_raw_a, ordered_feature_s_l, output_a):
+def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a):
     """ Runs regularized linear regressions on all features. """
     
     # Output features for reference
@@ -284,7 +339,7 @@ def regularized_regression(con, cur, feature_raw_a, ordered_feature_s_l, output_
     
 
 
-def regression_confidence_interval_wrapper(index_l, con, cur, feature1_a, feature2_a):
+def regression_confidence_interval_wrapper(index_l, feature1_a, feature2_a):
     """ Allows for bootstrapping over samples in feature1_a and feature2_a, given index of samples index_l """
     
     slope, intercept, r_value, p_value, std_err = \
