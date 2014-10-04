@@ -20,11 +20,16 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+#import pandas as pd
 from scipy import stats
-from sklearn import feature_selection, linear_model
+from sklearn import feature_selection, linear_model, preprocessing
 
 import config
 reload(config)
+#import election2008
+#reload(election2008)
+#import plotting
+#reload(plotting)
 import selecting
 reload(selecting)
 import utilities
@@ -46,13 +51,32 @@ def main(con, cur):
 #    pearsons_r_analysis(con, cur, feature_d, output_d)  
     
     # Create feature and output variable arrays to be used in regression models
-    feature_a, ordered_feature_s_l, output_a = create_arrays(feature_d, output_d)
+    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
+        create_arrays(feature_d, output_d)
+        
+    # Plot all counties whose rows remain intact because they had no Nones
+#    fips_s = 'fips_fips'
+#    fips_d = selecting.select_fields(con, cur, [fips_s], output_type='dictionary')
+#    print([i[1] for i in enumerate(fips_d['fips_fips']) if ~no_none_features_b_a[i[0]]])
+#    fips_sr = pd.Series(data=no_none_features_b_a, index=fips_d['fips_fips'])
+#    shape_index_l, shape_l = election2008.read_data()[1:]
+#    plotting.make_shape_plot(fips_sr, shape_index_l, shape_l, 'boolean',
+#                             ((0, 0, 0), (0.75, 0.75, 0.75)))  
+#    print(feature_a.shape)
+    
+    # Print ordered list of features used in regression models
+    for i_feature, feature_s in enumerate(ordered_feature_s_l):
+        print('%d: %s' % (i_feature, feature_s))
     
     # Run recursive feature elimination with cross-validation
 #    recursive_feature_elimination(con, cur, feature_a, ordered_feature_s_l, output_a)
     
     # Run regression with regularization
     regularized_regression(con, cur, feature_a, ordered_feature_s_l, output_a)
+#    i_features_to_fit_l = [4, 6]
+#    regularized_regression(con, cur, feature_a[:, i_features_to_fit_l],
+#                           [ordered_feature_s_l[i] for i in i_features_to_fit_l],
+#                           output_a)
 
 
 
@@ -71,14 +95,17 @@ def create_arrays(feature_d, output_d):
     # Transform output dataset
     output_s = output_d.keys()[0]
     output_a = np.array(output_d[output_s])
-    
+        
     # Select only observations without Nones
     is_none_b_a = np.equal(feature_a, None)
+#    num_none_per_feature_b_a = np.sum(is_none_b_a, axis=0)
+#    for l_feature, feature_s in enumerate(ordered_feature_s_l):
+#        print('%s: %d' % (feature_s, num_none_per_feature_b_a[l_feature]))
     no_none_features_b_a = (np.sum(is_none_b_a, axis=1) == 0)
     feature_a = feature_a[no_none_features_b_a,]
     output_a = output_a[no_none_features_b_a]
     
-    return (feature_a, ordered_feature_s_l, output_a)
+    return (feature_a, ordered_feature_s_l, output_a, no_none_features_b_a)
     
 
 
@@ -199,7 +226,7 @@ def recursive_feature_elimination(con, cur, X, ordered_feature_s_l, y):
     
 
 
-def regularized_regression(con, cur, feature_a, ordered_feature_s_l, output_a):
+def regularized_regression(con, cur, feature_raw_a, ordered_feature_s_l, output_a):
     """ Runs regularized linear regressions on all features. """
     
     # Output features for reference
@@ -207,43 +234,52 @@ def regularized_regression(con, cur, feature_a, ordered_feature_s_l, output_a):
 #    for l_feature, feature_s in enumerate(ordered_feature_s_l):
 #        print('(%d) %s' % (l_feature, feature_s))
 
-    for normalize_b in (False, True):
+    for standardize_b in (False, True):
         
-        if normalize_b:
-            print('Regressors normalized.')
+        if standardize_b:
+            feature_a = preprocessing.scale(feature_raw_a.astype(float))
+            print('\nRegressors standardized.')
         else:
-            print('Regressors not normalized.')
+            feature_a = feature_raw_a.astype(float)
+            print('\nRegressors not standardized.')
             
         # Ordinary least squares
         clf = linear_model.LinearRegression()
         clf.fit(feature_a, output_a)
-        print('Ordinary least squares: R^2 = %0.2f' % clf.score(feature_a, output_a))
+        print('\nOrdinary least squares: R^2 = %0.2f' % clf.score(feature_a, output_a))
+        print('Magnitude of R: %0.2f' % (clf.score(feature_a, output_a))**(1.0/2.0))
+        print('Intercept: %0.3g' % clf.intercept_)
         print_coefficients(clf.coef_, ordered_feature_s_l)
     
         # Ridge regression with generalized cross-validation
-        alpha_l = np.logspace(-5, 5, num=11).tolist()
-        clf = linear_model.RidgeCV(alphas=alpha_l, normalize=normalize_b)
+        alpha_l = np.logspace(-15, 5, num=11).tolist()
+        clf = linear_model.RidgeCV(alphas=alpha_l)
         clf.fit(feature_a, output_a)
-        print('Ridge: R^2 = %0.2f, alpha = %0.1g' % (clf.score(feature_a, output_a),
+        print('\nRidge: R^2 = %0.2f, alpha = %0.1g' % (clf.score(feature_a, output_a),
               clf.alpha_))
+        print('Magnitude of R: %0.2f' % (clf.score(feature_a, output_a))**(1.0/2.0))
+        print('Intercept: %0.3g' % clf.intercept_)
         print_coefficients(clf.coef_, ordered_feature_s_l)
         
         # Lasso regression with generalized cross-validation
-        alpha_l = np.logspace(-5, 5, num=11).tolist()
-        clf = linear_model.LassoCV(alphas=alpha_l, normalize=normalize_b)
+        alpha_l = np.logspace(-15, 5, num=11).tolist()
+        clf = linear_model.LassoCV(alphas=alpha_l)
         clf.fit(feature_a, output_a)
-        print('Lasso: R^2 = %0.2f, alpha = %0.1g' % (clf.score(feature_a, output_a),
+        print('\nLasso: R^2 = %0.2f, alpha = %0.1g' % (clf.score(feature_a, output_a),
               clf.alpha_))
+        print('Magnitude of R: %0.2f' % (clf.score(feature_a, output_a))**(1.0/2.0))
+        print('Intercept: %0.3g' % clf.intercept_)
         print_coefficients(clf.coef_, ordered_feature_s_l)
         
         # Elastic net regression with generalized cross-validation
         l1_ratio_l = [.1, .5, .7, .9, .95, .99, 1]
-        alpha_l = np.logspace(-5, 5, num=11).tolist()
-        clf = linear_model.ElasticNetCV(l1_ratio=l1_ratio_l, alphas=alpha_l,
-                                        normalize=normalize_b)
+        alpha_l = np.logspace(-15, 5, num=11).tolist()
+        clf = linear_model.ElasticNetCV(l1_ratio=l1_ratio_l, alphas=alpha_l)
         clf.fit(feature_a, output_a)
-        print('Elastic net: R^2 = %0.2f, l1_ratio = %0.2f, alpha = %0.1g' %
+        print('\nElastic net: R^2 = %0.2f, l1_ratio = %0.2f, alpha = %0.1g' %
               (clf.score(feature_a, output_a), clf.l1_ratio_, clf.alpha_))
+        print('Magnitude of R: %0.2f' % (clf.score(feature_a, output_a))**(1.0/2.0))
+        print('Intercept: %0.3g' % clf.intercept_)
         print_coefficients(clf.coef_, ordered_feature_s_l)
     
 

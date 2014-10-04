@@ -16,12 +16,13 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-10-03:
-- Unregularized linear-regression cross-validation feature selection results: white_not_hispanic_fraction, unemployment_fraction_shift, black_not_hispanic_fraction, asian_not_hispanic_fraction, obese, percent_non_senior_citizens_without_insurance, population_change_fraction
-- Try running all your regressions on one feature, then two, etc., to see how they work
-- Why is the coefficient of unemployment_fraction_shift negative? And how do you reconcile the shift rankings with what you know from the univariate linear regressions? Does any of this make sense?
-- Why are your lasso and elastic net models failing?
-- Which is better: normalizing vs. not normalizing?
+2014-10-04:
+- Rebuild the database on your desktop to add those WY counties
+- Make another graph of the r-value for each value separately, this time with all features sorted by the *magnitude* of R and not the signed value; probably give the r-value to the right in green or red depending on sign
+- Just to explore your features, probably run a pairwise correlation between each of them, right?
+- Are you satisfied now with your understanding of how the regression models work? Think about all of this some more...
+- Is it obvious that the R-value of all four models should be the same? Probably see what decimal place they're the same to.
+- How do you reconcile the shift rankings with what you know from the univariate linear regressions? Does any of this make sense?
 - Also try AIC and BIC?
 - Try re-creating the feature-selection results by building your own leave-one-out model. Maybe find some way to rank the best features for a regression model with n features? See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
 - In addition to leave-one-out, try regression with add-one-in

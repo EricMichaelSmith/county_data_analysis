@@ -29,26 +29,11 @@ sys.path.append(config.GeoDaSandbox_path_s)
 from pyGDsandbox.dataIO import dbf2df
 
 def main(con, cur):
-
-    # Prepare for reading in 2012 election data
-    file_path_s = os.path.join(config.raw_data_path_s, 'election_statistics', '2008',
-                             'elpo08p020.dbf')
     
-    # Read fields into DataFrame
-    full_df = dbf2df(file_path_s)
-    full_df = full_df.convert_objects(convert_numeric=True)
+    # Read in data
+    final_df, shape_index_l, shape_l = read_data()
     
-    # Select relevant columns
-    final_df = full_df.loc[:, ['FIPS', 'TOTAL_VOTE', 'VOTE_DEM', 'VOTE_REP']]
-    final_df.columns = ['election2008_fips', 'election2008_total_votes', 'election2008_dem', 'election2008_rep']
-    shape_index_l = final_df.election2008_fips.tolist()
-
-    # Read in shapefile data
-    fullShapeFile = shapefile.Reader(file_path_s)
-    shape_l = fullShapeFile.shapes()
-    del fullShapeFile
-    
-        # Removing the second (incorrect) entry for Ottawa County, OH
+    # Removing the second (incorrect) entry for Ottawa County, OH
     final_df = final_df.loc[~final_df['election2008_fips'].isin([39123]) |
                           ~final_df['election2008_dem'].isin([12064])]
     
@@ -95,3 +80,28 @@ def main(con, cur):
 #        print(row)
     
     return (shape_index_l, shape_l)
+    
+    
+    
+def read_data():
+    """ Read in data and return the uncleaned DataFrame as well as the shapes from the shapefile and an index of shapes """    
+    
+    # Prepare for reading in 2012 election data
+    file_path_s = os.path.join(config.raw_data_path_s, 'election_statistics', '2008',
+                             'elpo08p020.dbf')
+    
+    # Read fields into DataFrame
+    full_df = dbf2df(file_path_s)
+    full_df = full_df.convert_objects(convert_numeric=True)
+    
+    # Select relevant columns
+    final_df = full_df.loc[:, ['FIPS', 'TOTAL_VOTE', 'VOTE_DEM', 'VOTE_REP']]
+    final_df.columns = ['election2008_fips', 'election2008_total_votes', 'election2008_dem', 'election2008_rep']
+    shape_index_l = final_df.election2008_fips.tolist()
+
+    # Read in shapefile data
+    fullShapeFile = shapefile.Reader(file_path_s)
+    shape_l = fullShapeFile.shapes()
+    del fullShapeFile
+    
+    return(final_df, shape_index_l, shape_l)
