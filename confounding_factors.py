@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 #import pandas as pd
-import pdb
+#import pdb
 from scipy import stats
 from sklearn import feature_selection, linear_model, preprocessing
 
@@ -29,8 +29,8 @@ import config
 reload(config)
 #import election2008
 #reload(election2008)
-#import plotting
-#reload(plotting)
+import plotting
+reload(plotting)
 import selecting
 reload(selecting)
 import utilities
@@ -48,15 +48,15 @@ def main(con, cur):
     feature_s_l = config.feature_s_l
     feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')    
     
-    # (1) Find and plot r-value of each feature with dem_fraction_shift
+    # (2) Find and plot r-value of each feature with dem_fraction_shift
     feature_by_r_value_s_l = pearsons_r_analysis(feature_d, output_d)
     
-    # (3) Plot pairwise r-values of all features in a heat map
+    # (4) Plot pairwise r-values of all features in a heat map
     pearsons_r_heat_map(feature_d, feature_by_r_value_s_l)
     
     # Create feature and output variable arrays to be used in regression models
-#    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
-#        create_arrays(feature_d, output_d)
+    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
+        create_arrays(feature_d, output_d)
 
     # Print ordered list of features used in regression models
 #    for i_feature, feature_s in enumerate(ordered_feature_s_l):
@@ -68,8 +68,9 @@ def main(con, cur):
 #    print([i[1] for i in enumerate(fips_d['fips_fips']) if ~no_none_features_b_a[i[0]]])
 #    fips_sr = pd.Series(data=no_none_features_b_a, index=fips_d['fips_fips'])
 #    shape_index_l, shape_l = election2008.read_data()[1:]
-#    plotting.make_shape_plot(fips_sr, shape_index_l, shape_l, 'boolean',
-#                             ((0, 0, 0), (0.75, 0.75, 0.75)))  
+#    shape_fig = plt.figure(figsize=(11,6))
+#    plotting.make_shape_plot(shape_fig, fips_sr, shape_index_l, shape_l, 'boolean',
+#                             ((0, 0, 0), (0.75, 0.75, 0.75)))
 #    print(feature_a.shape)
 
     # Run additive regression model
@@ -136,12 +137,14 @@ def create_arrays(feature_d, output_d):
         
     # Select only observations without Nones
     is_none_b_a = np.equal(feature_a, None)
-#    num_none_per_feature_b_a = np.sum(is_none_b_a, axis=0)
-#    for l_feature, feature_s in enumerate(ordered_feature_s_l):
-#        print('%s: %d' % (feature_s, num_none_per_feature_b_a[l_feature]))
     no_none_features_b_a = (np.sum(is_none_b_a, axis=1) == 0)
     feature_a = feature_a[no_none_features_b_a,]
     output_a = output_a[no_none_features_b_a]
+    
+    # Print how many rows each feature is missing information on
+#    num_none_per_feature_b_a = np.sum(is_none_b_a, axis=0)
+#    for l_feature, feature_s in enumerate(ordered_feature_s_l):
+#        print('%s: %d' % (feature_s, num_none_per_feature_b_a[l_feature]))
     
     return (feature_a, ordered_feature_s_l, output_a, no_none_features_b_a)
     
@@ -218,10 +221,10 @@ def pearsons_r_analysis(feature_d, output_d):
                 horizontalalignment='right', verticalalignment='center')
                     
     # Configure axes
-    ax.set_position([0.43, 0.05, 0.54, 0.93])
+    ax.set_position([0.43, 0.05, 0.52, 0.93])
     ax.set_xlim([-1, 1])
     ax.set_xticks(np.arange(-1, 1.25, 0.25).tolist())
-    ax.set_xlabel("""Pearson's r between feature and Obama vote shift""")
+    ax.set_xlabel("""Correlation strength (Pearson's r) between feature and Obama vote shift""")
     ax.set_ylim([0.5, num_features+0.5])
     ax.set_yticks(np.arange(1, num_features+1, 1).tolist())
 #    feature_by_r_value_s_l = [feature_s + ' (+%0.2f)' % sorted_r_value_l[i]
@@ -245,19 +248,43 @@ def pearsons_r_heat_map(feature_d, feature_by_r_value_s_l):
     heat_map_a = np.ndarray((len(feature_by_r_value_s_l), len(feature_by_r_value_s_l)))
     for i_feature1, feature1_s in enumerate(feature_by_r_value_s_l):
         for i_feature2, feature2_s in enumerate(feature_by_r_value_s_l):
-            is_none_b_a = np.equal(feature_d[feature1_s], None) & \
+            is_none_b_a = np.equal(feature_d[feature1_s], None) | \
                 np.equal(feature_d[feature2_s], None)
             feature1_a = np.array(feature_d[feature1_s])[~is_none_b_a]
             feature2_a = np.array(feature_d[feature2_s])[~is_none_b_a]
-            pdb.set_trace()
             heat_map_a[i_feature1, i_feature2] = \
                 stats.linregress(np.array(feature1_a.tolist()),
                                  np.array(feature2_a.tolist()))[2]
     
-    # Plot heatmap
-    ax = plt.figure().add_subplot(1, 1, 1)
-    ax.imshow(heat_map_a)
-    # {{{make sure the x- and y-axes are correct and in the preferred orientation. add x- and y-axis labels, right?}}}
+    # Create figure and heatmap axes
+    fig = plt.figure(figsize=(10, 11))
+    heatmap_ax = fig.add_axes([0.43, 0.10, 0.55, 0.55])
+    
+    # Show image
+    color_t_t = ((1, 0, 0), (1, 1, 1), (0, 1, 0))
+    max_magnitude = 1
+    colormap = plotting.make_colormap(color_t_t)
+    heatmap_ax.imshow(heat_map_a,
+                      cmap=colormap,
+                      aspect='equal',
+                      interpolation='none',
+                      vmin=-max_magnitude,
+                      vmax=max_magnitude)
+    
+    # Format axes
+    heatmap_ax.xaxis.set_tick_params(labelbottom='off', labeltop='on')
+    heatmap_ax.set_xlim([-0.5, len(feature_by_r_value_s_l)-0.5])
+    heatmap_ax.set_xticks(range(len(feature_by_r_value_s_l)))
+    heatmap_ax.set_xticklabels(feature_by_r_value_s_l, rotation=90)
+    heatmap_ax.invert_xaxis()
+    heatmap_ax.set_ylim([-0.5, len(feature_by_r_value_s_l)-0.5])
+    heatmap_ax.set_yticks(range(len(feature_by_r_value_s_l)))
+    heatmap_ax.set_yticklabels(feature_by_r_value_s_l)
+    
+    # Add colorbar
+    color_ax = fig.add_axes([0.25, 0.06, 0.50, 0.02])
+    color_bar_s = "Correlation strength (Pearson's r)"
+    plotting.make_colorbar(color_ax, max_magnitude, color_t_t, color_bar_s)
     
     
 

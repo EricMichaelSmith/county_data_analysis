@@ -26,9 +26,9 @@ import scipy as sp
 
 
 
-def define_boolean_color(booleanSR, colorT_T):
+def define_boolean_color(booleanSR, color_t_t):
     """
-    booleanSR is the boolean-valued series to define the color from. colorT_T
+    booleanSR is the boolean-valued series to define the color from. color_t_t
     should be two tuples of length 3: one if the boolean value is
     true and one if it is false.
     """
@@ -40,17 +40,17 @@ def define_boolean_color(booleanSR, colorT_T):
 
     # Set columns one by one
     for lColumn, columnS in enumerate(colorColumnT):
-        colorDF.loc[booleanSR, columnS] = colorT_T[0][lColumn]
-        colorDF.loc[~booleanSR, columnS] = colorT_T[1][lColumn]
+        colorDF.loc[booleanSR, columnS] = color_t_t[0][lColumn]
+        colorDF.loc[~booleanSR, columnS] = color_t_t[1][lColumn]
     return (colorDF, -1)
     # The second entry of the returned tuple specifies that there is no maximum
     # magnitude, like we'd have if this were define_gradient_color
     
     
     
-def define_gradient_color(valueSR, colorT_T):
+def define_gradient_color(valueSR, color_t_t):
     """ 
-    valueSR is the series to define the color from. colorT_T should be three
+    valueSR is the series to define the color from. color_t_t should be three
     tuples of length 3: one if the value is maximally negative, one if it is
     zero, and one if it is maximally positive. Intermediate values will be
     interpolated.
@@ -58,69 +58,78 @@ def define_gradient_color(valueSR, colorT_T):
     
     # Find the maximum-magnitude value in the column of interest: this will be
     # represented with the brightest color.
-    maxMagnitude = max([abs(i) for i in valueSR])
+    max_magnitude = max([abs(i) for i in valueSR])
 
-    # For each index in inputDF, interpolate between the values of colorT_T to
+    # For each index in inputDF, interpolate between the values of color_t_t to
     # find the approprate color of the index
     gradientDF = pd.DataFrame(np.ndarray((len(valueSR.index), 3)),
                               index=valueSR.index,
                               columns=['red', 'green', 'blue'])
     for index in valueSR.index:
         gradientDF.loc[index] = \
-        interpolate_gradient_color(colorT_T,
+        interpolate_gradient_color(color_t_t,
                                    valueSR[index],
-                                   maxMagnitude)
-    return (gradientDF, maxMagnitude)
+                                   max_magnitude)
+    return (gradientDF, max_magnitude)
 
 
                                                       
-def interpolate_gradient_color(colorT_T, value, maxMagnitude):
+def interpolate_gradient_color(color_t_t, value, max_magnitude):
     """
-    colorT_T is three tuples of length 3: one if the value is maximally negative,
-    one if it is zero, and one if it is maximally positive. maxMagnitude sets the
+    color_t_t is three tuples of length 3: one if the value is maximally negative,
+    one if it is zero, and one if it is maximally positive. max_magnitude sets the
     intensity of the interpolated color. The function returns a tuple containing
     the interpolated color for the input value.
     """
     
-    normalizedMagnitude = abs(value)/maxMagnitude
+    normalizedMagnitude = abs(value)/max_magnitude
     
     # The higher the magnitude, the closer the color to farColorT; the lower
     # the magnitude, the closter the color to nearColorT
-    nearColorT = colorT_T[1]
+    nearColorT = color_t_t[1]
     if value < 0:
-        farColorT = colorT_T[0]
+        farColorT = color_t_t[0]
     else:
-        farColorT = colorT_T[2]
+        farColorT = color_t_t[2]
     interpolatedColorA = (normalizedMagnitude * np.array(farColorT) +
                           (1-normalizedMagnitude) * np.array(nearColorT))
     return tuple(interpolatedColorA)
     
     
 
-def make_colorbar(fig, maxMagnitude, colorT_T, labelS):
+def make_colorbar(ax, max_magnitude, color_t_t, label_s):
     """
-    Creates a colorbar with the given figure handle fig; the colors are defined
-    according to colorT_T and the values are mapped from -maxMagnitude to
-    +maxMagnitude. The colorbar is labeled with labelS.
+    Creates a colorbar with the given axis handle ax; the colors are defined
+    according to color_t_t and the values are mapped from -max_magnitude to
+    +max_magnitude. The colorbar is labeled with label_s.
     """
 
-    # Create the colormap for the colorbar
-    colorL = ['red', 'green', 'blue']
-    colorMapEntry = lambda colorT_T, iColor: \
-        ((0.0, colorT_T[0][iColor], colorT_T[0][iColor]),
-         (0.5, colorT_T[1][iColor], colorT_T[1][iColor]),
-         (1.0, colorT_T[2][iColor], colorT_T[2][iColor]))
-    colorD = {colorS: colorMapEntry(colorT_T, iColor) for iColor, colorS
-              in enumerate(colorL)}
-    colorBarMap = LinearSegmentedColormap('ShapePlotColorMap', colorD)
+    # Create the colormap for the colorbar    
+    colormap = make_colormap(color_t_t)    
     
-    # Create the colormap
-    colorAx = fig.add_axes([0.25, 0.10, 0.50, 0.05])
-    norm = mpl.colors.Normalize(vmin=-maxMagnitude, vmax=maxMagnitude)
-    colorBarHandle = mpl.colorbar.ColorbarBase(colorAx, cmap=colorBarMap,
+    # Create the colorbar
+    norm = mpl.colors.Normalize(vmin=-max_magnitude, vmax=max_magnitude)
+    colorBarHandle = mpl.colorbar.ColorbarBase(ax, cmap=colormap,
                                                norm=norm,
                                                orientation='horizontal')
-    colorBarHandle.set_label(labelS)
+    colorBarHandle.set_label(label_s)
+    
+    
+    
+def make_colormap(color_t_t):
+    """ Given colors defined in color_t_t, creates a LinearSegmentedColormap object. """
+    
+    # Create the colormap
+    color_l = ['red', 'green', 'blue']
+    color_map_entry = lambda color_t_t, i_color: \
+        ((0.0, color_t_t[0][i_color], color_t_t[0][i_color]),
+         (0.5, color_t_t[1][i_color], color_t_t[1][i_color]),
+         (1.0, color_t_t[2][i_color], color_t_t[2][i_color]))
+    color_d = {colorS: color_map_entry(color_t_t, i_color) for i_color, colorS
+              in enumerate(color_l)}
+    colormap = LinearSegmentedColormap('ShapePlotColorMap', color_d)
+    
+    return colormap
 
 
 
@@ -148,26 +157,20 @@ def make_scatter_plot(ax, x_l_t, y_l_t, color_t_t, plot_axes_at_zero_b=False,
     
 
 
-def make_shape_plot(valueSR, shapeIndexL, shapeL, colorTypeS, colorT_T,
+def make_shape_plot(fig, valueSR, shapeIndexL, shapeL, colorTypeS, color_t_t,
                     colorBarS=None):
-    """
-    Creates a shape plot. valueSR is the Series containing the data to be
-    plotted; shapeIndexL indexes the shapes to plot by FIPS code; shapeL contains
-    the shapes to plot; colorTypeS defines whether the plot will be shaded
-    according to a binary or a gradient; colorT_T defines the colors to shade
-    with. colorBarS labels the colorbar.
+    """ Creates a shape plot given figure handle fig. valueSR is the Series containing the data to be plotted; shapeIndexL indexes the shapes to plot by FIPS code; shapeL contains the shapes to plot; colorTypeS defines whether the plot will be shaded according to a binary or a gradient; color_t_t defines the colors to shade with. colorBarS labels the colorbar.
     """
     
     # Set shape colors
-    shapeFig = plt.figure(figsize=(11,6))
-    ax = shapeFig.add_subplot(1, 1, 1)
+    ax = fig.add_subplot(1, 1, 1)
     shapeBoundsAllShapesL = [float('inf'), float('inf'), float('-inf'), float('-inf')]    
 
-    colorTypesD = {'boolean': lambda: define_boolean_color(valueSR, colorT_T),
-                   'gradient': lambda: define_gradient_color(valueSR, colorT_T)}
+    colorTypesD = {'boolean': lambda: define_boolean_color(valueSR, color_t_t),
+                   'gradient': lambda: define_gradient_color(valueSR, color_t_t)}
     colorT = colorTypesD[colorTypeS]()
     colorDF = colorT[0]
-    maxMagnitude = colorT[1]
+    max_magnitude = colorT[1]
             
     # Add shapes to plot
     for lFIPS in valueSR.index:
@@ -199,8 +202,9 @@ def make_shape_plot(valueSR, shapeIndexL, shapeL, colorTypeS, colorT_T,
     ax.set_axis_off()
     
     # Add colorbar
-    if maxMagnitude != -1:
-        make_colorbar(shapeFig, maxMagnitude, colorT_T, colorBarS)
+    if colorBarS and max_magnitude != -1:
+        color_ax = fig.add_axes([0.25, 0.10, 0.50, 0.05])
+        make_colorbar(color_ax, max_magnitude, color_t_t, colorBarS)
     return ax
     
     

@@ -16,18 +16,17 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-10-04:
-- Okay, fix the problem now with the health data values being wonky! Re-clean the original CSV to remove commas... and then maybe see if the number of null values in the features you took out is the same or different?
+2014-10-05:
 - Rebuild the database on your desktop to add those WY counties
-- Just to explore your features, probably run a pairwise correlation between each of them and make a plot of that, right?
-- Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' fealty to Obama; but then, of course, you have to explain all of the features clearly and put units on them
-- Are you satisfied now with your understanding of how the regression models work? Think about all of this some more...
+- (4) Have this plot save to disk
+- (5) Only put regular r^2 in the main text and say, click here for cross-validated r^2, adjusted r^2, AIC, and BIC. And do the same thing with a take-one-out model?
 - Is it obvious that the R-value of all four models should be the same? Probably see what decimal place they're the same to.
-- How do you reconcile the shift rankings with what you know from the univariate linear regressions? Does any of this make sense?
-- Also try AIC and BIC?
-- Try re-creating the feature-selection results by building your own leave-one-out model. Maybe find some way to rank the best features for a regression model with n features? See how the ranking of the magnitude of the p-values or r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
+- (6) Figure out a good way to plot the regularized models: perhaps with a grouped bar graph where every group of bars is a feature and each member of the group is a regularization method? And the features could be ordered according to the strength of the R^2 of the single linear regressions, just like in previous plots
+- (3) Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' loyalty to Obama; but then, of course, you have to explain all of the features clearly and put units on them
+- (1) Make some county shape plots plotting a few interesting features
+- Are you satisfied now with your understanding of how the regression models work? Think about all of this some more...
+- See how the ranking of the magnitude of the r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
 - In article, find something that backs up your finding that whites left Obama in droves (call it the Matt Damon effect? Or just be very careful about this...)
-- Maybe put the various scripts that you call in confounding_factors.main() in some kind of logical order?
 - Before posting, search the code for "{{{" and "[[[" and "((("
 - When you're done with all of that, see the OneNote page task list for other stuff to do.
 """
