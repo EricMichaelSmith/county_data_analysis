@@ -17,6 +17,7 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
 2014-10-04:
+- Okay, fix the problem now with the health data values being wonky! Re-clean the original CSV to remove commas... and then maybe see if the number of null values in the features you took out is the same or different?
 - Rebuild the database on your desktop to add those WY counties
 - Just to explore your features, probably run a pairwise correlation between each of them and make a plot of that, right?
 - Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' fealty to Obama; but then, of course, you have to explain all of the features clearly and put units on them

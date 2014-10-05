@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 #import pandas as pd
+import pdb
 from scipy import stats
 from sklearn import feature_selection, linear_model, preprocessing
 
@@ -47,16 +48,20 @@ def main(con, cur):
     feature_s_l = config.feature_s_l
     feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')    
     
-    # Find and plot r-value of each feature with dem_fraction_shift
+    # (1) Find and plot r-value of each feature with dem_fraction_shift
     feature_by_r_value_s_l = pearsons_r_analysis(feature_d, output_d)
     
-    # Plot pairwise r-values of all features in a heat map
+    # (3) Plot pairwise r-values of all features in a heat map
     pearsons_r_heat_map(feature_d, feature_by_r_value_s_l)
     
     # Create feature and output variable arrays to be used in regression models
-    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
-        create_arrays(feature_d, output_d)
-        
+#    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
+#        create_arrays(feature_d, output_d)
+
+    # Print ordered list of features used in regression models
+#    for i_feature, feature_s in enumerate(ordered_feature_s_l):
+#        print('%d: %s' % (i_feature, feature_s))
+
     # Plot all counties whose rows remain intact because they had no Nones
 #    fips_s = 'fips_fips'
 #    fips_d = selecting.select_fields(con, cur, [fips_s], output_type='dictionary')
@@ -66,19 +71,15 @@ def main(con, cur):
 #    plotting.make_shape_plot(fips_sr, shape_index_l, shape_l, 'boolean',
 #                             ((0, 0, 0), (0.75, 0.75, 0.75)))  
 #    print(feature_a.shape)
-    
-    # Print ordered list of features used in regression models
-#    for i_feature, feature_s in enumerate(ordered_feature_s_l):
-#        print('%d: %s' % (i_feature, feature_s))
-    
-    # Run recursive feature elimination with cross-validation
-#    recursive_feature_elimination(feature_a, ordered_feature_s_l, output_a)
-    
+
+    # Run additive regression model
+#    additive_regression_model(feature_a, ordered_feature_s_l, output_a)
+
     # Run regression with regularization
 #    regularized_regression(feature_a, ordered_feature_s_l, output_a)
     
-    # Run additive regression model
-#    additive_regression_model(feature_a, ordered_feature_s_l, output_a)
+    # Run recursive feature elimination with cross-validation
+#    recursive_feature_elimination(feature_a, ordered_feature_s_l, output_a)
 
 
 
@@ -239,8 +240,24 @@ def pearsons_r_analysis(feature_d, output_d):
     
 def pearsons_r_heat_map(feature_d, feature_by_r_value_s_l):
     """ Plots a heatmap of the pairwise correlation coefficient between all features. """
+
+    # Create heatmap from pairwise correlations
+    heat_map_a = np.ndarray((len(feature_by_r_value_s_l), len(feature_by_r_value_s_l)))
+    for i_feature1, feature1_s in enumerate(feature_by_r_value_s_l):
+        for i_feature2, feature2_s in enumerate(feature_by_r_value_s_l):
+            is_none_b_a = np.equal(feature_d[feature1_s], None) & \
+                np.equal(feature_d[feature2_s], None)
+            feature1_a = np.array(feature_d[feature1_s])[~is_none_b_a]
+            feature2_a = np.array(feature_d[feature2_s])[~is_none_b_a]
+            pdb.set_trace()
+            heat_map_a[i_feature1, i_feature2] = \
+                stats.linregress(np.array(feature1_a.tolist()),
+                                 np.array(feature2_a.tolist()))[2]
     
-    # {{{do this}}}
+    # Plot heatmap
+    ax = plt.figure().add_subplot(1, 1, 1)
+    ax.imshow(heat_map_a)
+    # {{{make sure the x- and y-axes are correct and in the preferred orientation. add x- and y-axis labels, right?}}}
     
     
 

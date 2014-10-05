@@ -124,7 +124,7 @@ def make_colorbar(fig, maxMagnitude, colorT_T, labelS):
 
 
 
-def make_scatter_plot(x_l_t, y_l_t, color_t_t, plot_axes_at_zero_b=False,
+def make_scatter_plot(ax, x_l_t, y_l_t, color_t_t, plot_axes_at_zero_b=False,
                                                plot_regression_b=False):
     """
     Creates a scatter plot. x_l_t and y_l_t are length-n tuples containing the
@@ -133,10 +133,8 @@ def make_scatter_plot(x_l_t, y_l_t, color_t_t, plot_axes_at_zero_b=False,
     """
     
     # Plot all data
-    scatter_fig = plt.figure()
-    ax = scatter_fig.add_subplot(1, 1, 1)
     for l_series in xrange(len(x_l_t)):
-        plt.scatter(x_l_t[l_series], y_l_t[l_series],
+        ax.scatter(x_l_t[l_series], y_l_t[l_series],
                     c=color_t_t[l_series],
                     edgecolors='none')
                                         
@@ -148,8 +146,6 @@ def make_scatter_plot(x_l_t, y_l_t, color_t_t, plot_axes_at_zero_b=False,
     if plot_regression_b and len(x_l_t) == 1:
         plot_regression(ax, x_l_t[0], y_l_t[0])
     
-    return ax
-
 
 
 def make_shape_plot(valueSR, shapeIndexL, shapeL, colorTypeS, colorT_T,
