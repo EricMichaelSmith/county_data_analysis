@@ -24,6 +24,7 @@ import os
 #import pdb
 from scipy import stats
 from sklearn import feature_selection, linear_model, preprocessing
+import statsmodels.api as sm
 
 import config
 reload(config)
@@ -90,33 +91,42 @@ def additive_regression_model(feature_a, ordered_feature_s_l, output_a):
     # Create a list of unselected features
     i_unselected_feature_l = range(0, feature_a.shape[1])
 
-    # Select the feature most correlated with dem_fraction_shift
-    r_squared_l = []
-    for i_feature in i_unselected_feature_l:
-        clf = linear_model.LinearRegression()
-        clf.fit(np.expand_dims(feature_a[:, i_feature], axis=1), output_a)
-        r_squared_l.append(clf.score(np.expand_dims(feature_a[:, i_feature], axis=1),
-                                     output_a))
-    i_most_correlated_feature = \
-        i_unselected_feature_l[r_squared_l.index(max(r_squared_l))]
-    print('Most correlated feature: %s\n    R^2 = %0.5f' %
-          (ordered_feature_s_l[i_most_correlated_feature], max(r_squared_l)))
-    i_selected_feature_l = [i_most_correlated_feature]
-    i_unselected_feature_l.remove(i_most_correlated_feature)
-    
-    while len(i_unselected_feature_l):
-        r_squared_l = []
+    # Loop over all scores
+    for score_s in ['R-squared', 'adjusted R-squared', 'AIC', 'BIC']:
+        
+        # Select the feature most correlated with dem_fraction_shift
+        score_l = []
         for i_feature in i_unselected_feature_l:
-            clf = linear_model.LinearRegression()
-            clf.fit(feature_a[:, i_selected_feature_l+[i_feature]], output_a)
-            r_squared_l.append(clf.score(feature_a[:, i_selected_feature_l+[i_feature]],
-                                         output_a))
-        i_most_correlated_feature = \
-            i_unselected_feature_l[r_squared_l.index(max(r_squared_l))]
-        print('Next most correlated feature: %s\n    R^2 = %0.5f' %           
-              (ordered_feature_s_l[i_most_correlated_feature], max(r_squared_l)))
-        i_selected_feature_l.append(i_most_correlated_feature)
-        i_unselected_feature_l.remove(i_most_correlated_feature)
+            model = sm.OLS(output_a, np.expand_dims(feature_a[:, i_feature], axis=1))
+            results = model.fit()
+            # {{{}}}
+
+#    r_squared_l = []
+#    for i_feature in i_unselected_feature_l:
+#        clf = linear_model.LinearRegression()
+#        clf.fit(np.expand_dims(feature_a[:, i_feature], axis=1), output_a)
+#        r_squared_l.append(clf.score(np.expand_dims(feature_a[:, i_feature], axis=1),
+#                                     output_a))
+#    i_most_correlated_feature = \
+#        i_unselected_feature_l[r_squared_l.index(max(r_squared_l))]
+#    print('Most correlated feature: %s\n    R^2 = %0.5f' %
+#          (ordered_feature_s_l[i_most_correlated_feature], max(r_squared_l)))
+#    i_selected_feature_l = [i_most_correlated_feature]
+#    i_unselected_feature_l.remove(i_most_correlated_feature)
+#    
+#    while len(i_unselected_feature_l):
+#        r_squared_l = []
+#        for i_feature in i_unselected_feature_l:
+#            clf = linear_model.LinearRegression()
+#            clf.fit(feature_a[:, i_selected_feature_l+[i_feature]], output_a)
+#            r_squared_l.append(clf.score(feature_a[:, i_selected_feature_l+[i_feature]],
+#                                         output_a))
+#        i_most_correlated_feature = \
+#            i_unselected_feature_l[r_squared_l.index(max(r_squared_l))]
+#        print('Next most correlated feature: %s\n    R^2 = %0.5f' %           
+#              (ordered_feature_s_l[i_most_correlated_feature], max(r_squared_l)))
+#        i_selected_feature_l.append(i_most_correlated_feature)
+#        i_unselected_feature_l.remove(i_most_correlated_feature)
 
 
 

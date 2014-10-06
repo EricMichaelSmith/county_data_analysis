@@ -23,6 +23,7 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 - Is it obvious that the R-value of all four models should be the same? Probably see what decimal place they're the same to.
 - (6) Figure out a good way to plot the regularized models: perhaps with a grouped bar graph where every group of bars is a feature and each member of the group is a regularization method? And the features could be ordered according to the strength of the R^2 of the single linear regressions, just like in previous plots
 - (3) Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' loyalty to Obama; but then, of course, you have to explain all of the features clearly and put units on them
+- If it's easy, and AK and HI to the shape plots
 - (1) Make some county shape plots plotting a few interesting features
 - Are you satisfied now with your understanding of how the regression models work? Think about all of this some more...
 - See how the ranking of the magnitude of the r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
