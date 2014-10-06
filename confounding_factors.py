@@ -49,10 +49,10 @@ def main(con, cur):
     feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')    
     
     # (2) Find and plot r-value of each feature with dem_fraction_shift
-    feature_by_r_value_s_l = pearsons_r_analysis(feature_d, output_d)
+    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
     
     # (4) Plot pairwise r-values of all features in a heat map
-    pearsons_r_heat_map(feature_d, feature_by_r_value_s_l)
+    pearsons_r_heatmap(feature_d, feature_by_r_value_s_l)
     
     # Create feature and output variable arrays to be used in regression models
     feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
@@ -87,6 +87,7 @@ def main(con, cur):
 def additive_regression_model(feature_a, ordered_feature_s_l, output_a):
     """ Builds a multivariate linear regression by iteratively adding the feature that will most increase the R^2 value. """
     
+    # Create a list of unselected features
     i_unselected_feature_l = range(0, feature_a.shape[1])
 
     # Select the feature most correlated with dem_fraction_shift
@@ -148,9 +149,58 @@ def create_arrays(feature_d, output_d):
     
     return (feature_a, ordered_feature_s_l, output_a, no_none_features_b_a)
     
+    
+    
+def pearsons_r_heatmap(feature_d, feature_by_r_value_s_l):
+    """ Plots a heatmap of the pairwise correlation coefficient between all features. """
 
+    # Create heatmap from pairwise correlations
+    heat_map_a = np.ndarray((len(feature_by_r_value_s_l), len(feature_by_r_value_s_l)))
+    for i_feature1, feature1_s in enumerate(feature_by_r_value_s_l):
+        for i_feature2, feature2_s in enumerate(feature_by_r_value_s_l):
+            is_none_b_a = np.equal(feature_d[feature1_s], None) | \
+                np.equal(feature_d[feature2_s], None)
+            feature1_a = np.array(feature_d[feature1_s])[~is_none_b_a]
+            feature2_a = np.array(feature_d[feature2_s])[~is_none_b_a]
+            heat_map_a[i_feature1, i_feature2] = \
+                stats.linregress(np.array(feature1_a.tolist()),
+                                 np.array(feature2_a.tolist()))[2]
+    
+    # Create figure and heatmap axes
+    fig = plt.figure(figsize=(10, 11))
+    heatmap_ax = fig.add_axes([0.43, 0.10, 0.55, 0.55])
+    
+    # Show image
+    color_t_t = ((1, 0, 0), (1, 1, 1), (0, 1, 0))
+    max_magnitude = 1
+    colormap = plotting.make_colormap(color_t_t)
+    heatmap_ax.imshow(heat_map_a,
+                      cmap=colormap,
+                      aspect='equal',
+                      interpolation='none',
+                      vmin=-max_magnitude,
+                      vmax=max_magnitude)
+    
+    # Format axes
+    heatmap_ax.xaxis.set_tick_params(labelbottom='off', labeltop='on')
+    heatmap_ax.set_xlim([-0.5, len(feature_by_r_value_s_l)-0.5])
+    heatmap_ax.set_xticks(range(len(feature_by_r_value_s_l)))
+    heatmap_ax.set_xticklabels(feature_by_r_value_s_l, rotation=90)
+    heatmap_ax.invert_xaxis()
+    heatmap_ax.set_ylim([-0.5, len(feature_by_r_value_s_l)-0.5])
+    heatmap_ax.set_yticks(range(len(feature_by_r_value_s_l)))
+    heatmap_ax.set_yticklabels(feature_by_r_value_s_l)
+    
+    # Add colorbar
+    color_ax = fig.add_axes([0.25, 0.06, 0.50, 0.02])
+    color_bar_s = "Correlation strength (Pearson's r)"
+    plotting.make_colorbar(color_ax, max_magnitude, color_t_t, color_bar_s)
+    
+    plt.savefig(os.path.join(config.output_path_s, 'pearsons_r_heatmap.png'))
 
-def pearsons_r_analysis(feature_d, output_d):
+    
+
+def pearsons_r_single_features(feature_d, output_d):
     """ Find and plot r-value of each feature (in feature_d) with dem_fraction_shift (in output_d) """
     
     # Run linear regression on each feature separately
@@ -235,57 +285,10 @@ def pearsons_r_analysis(feature_d, output_d):
     
     # Show and save plot
     plt.show()
-    plt.savefig(os.path.join(config.output_path_s, 'feature_r_values.png'))
+    plt.savefig(os.path.join(config.output_path_s, 'pearsons_r_single_features.png'))
     
     return feature_by_r_value_s_l
-    
-    
-    
-def pearsons_r_heat_map(feature_d, feature_by_r_value_s_l):
-    """ Plots a heatmap of the pairwise correlation coefficient between all features. """
 
-    # Create heatmap from pairwise correlations
-    heat_map_a = np.ndarray((len(feature_by_r_value_s_l), len(feature_by_r_value_s_l)))
-    for i_feature1, feature1_s in enumerate(feature_by_r_value_s_l):
-        for i_feature2, feature2_s in enumerate(feature_by_r_value_s_l):
-            is_none_b_a = np.equal(feature_d[feature1_s], None) | \
-                np.equal(feature_d[feature2_s], None)
-            feature1_a = np.array(feature_d[feature1_s])[~is_none_b_a]
-            feature2_a = np.array(feature_d[feature2_s])[~is_none_b_a]
-            heat_map_a[i_feature1, i_feature2] = \
-                stats.linregress(np.array(feature1_a.tolist()),
-                                 np.array(feature2_a.tolist()))[2]
-    
-    # Create figure and heatmap axes
-    fig = plt.figure(figsize=(10, 11))
-    heatmap_ax = fig.add_axes([0.43, 0.10, 0.55, 0.55])
-    
-    # Show image
-    color_t_t = ((1, 0, 0), (1, 1, 1), (0, 1, 0))
-    max_magnitude = 1
-    colormap = plotting.make_colormap(color_t_t)
-    heatmap_ax.imshow(heat_map_a,
-                      cmap=colormap,
-                      aspect='equal',
-                      interpolation='none',
-                      vmin=-max_magnitude,
-                      vmax=max_magnitude)
-    
-    # Format axes
-    heatmap_ax.xaxis.set_tick_params(labelbottom='off', labeltop='on')
-    heatmap_ax.set_xlim([-0.5, len(feature_by_r_value_s_l)-0.5])
-    heatmap_ax.set_xticks(range(len(feature_by_r_value_s_l)))
-    heatmap_ax.set_xticklabels(feature_by_r_value_s_l, rotation=90)
-    heatmap_ax.invert_xaxis()
-    heatmap_ax.set_ylim([-0.5, len(feature_by_r_value_s_l)-0.5])
-    heatmap_ax.set_yticks(range(len(feature_by_r_value_s_l)))
-    heatmap_ax.set_yticklabels(feature_by_r_value_s_l)
-    
-    # Add colorbar
-    color_ax = fig.add_axes([0.25, 0.06, 0.50, 0.02])
-    color_bar_s = "Correlation strength (Pearson's r)"
-    plotting.make_colorbar(color_ax, max_magnitude, color_t_t, color_bar_s)
-    
     
 
 def print_coefficients(coeff_l, ordered_feature_s_l):
@@ -389,3 +392,8 @@ def regression_confidence_interval_wrapper(index_l, feature1_a, feature2_a):
     slope, intercept, r_value, p_value, std_err = \
         stats.linregress(feature1_a[index_l].tolist(), feature2_a[index_l].tolist())
     return r_value
+    
+    
+    
+# Dictionary of all information needed for running unregularized regression models with various scores
+regression_score_d = {'adjusted R-squared': {}, 'AIC': {}, 'BIC': {}, 'R-squared': {}, 'R-squared from CV': {}}
