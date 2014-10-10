@@ -19,6 +19,8 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 2014-10-05:
 - (4) Have this plot save to disk
 - (5) Only put regular r^2 in the main text and say, click here for cross-validated r^2, adjusted r^2, AIC, and BIC. And do the same thing with a take-one-out model?
+    - You should minimize rather than maximize AIC and BIC - fix this in the code!
+    - Add cross-validated R^2 as well
     - Maybe just use this package? http://statsmodels.sourceforge.net/ (see also http://connor-johnson.com/2014/02/18/linear-regression-with-python/)
 - Is it obvious that the R-value of all four models should be the same? Probably see what decimal place they're the same to.
 - (6) Figure out a good way to plot the regularized models: perhaps with a grouped bar graph where every group of bars is a feature and each member of the group is a regularization method? And the features could be ordered according to the strength of the R^2 of the single linear regressions, just like in previous plots
