@@ -221,6 +221,20 @@ def plot_axes_at_zero(ax):
     ax.set_xlim(axis_limits_t[0], axis_limits_t[1])
     ax.set_ylim(axis_limits_t[2], axis_limits_t[3])
     return ax
+	
+	
+	
+def plot_line_score_of_features(ax, feature_s_l, score_value_l, forward_or_backward_s,
+								title_s=None, ylabel_s=None):
+	""" Given a list of features feature_s_l and a corresponding list of scores score_value_l, creates a line plot with axes ax. """
+	
+	# Indicate addition or removal of features
+	if forward_or_backward_s == 'forward':
+		feature_s_l[1:] = ['+ ' + feature_s for feature_s in feature_s_l[1:]]
+	elif forward_or_backward_s == 'backward':
+		feature_s_l[1:] = ['- ' + feature_s for feature_s in feature_s_l[1:]]
+		
+	# {{{}}}
     
     
     

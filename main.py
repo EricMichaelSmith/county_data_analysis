@@ -16,9 +16,11 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-10-05:
+2014-10-11:
+- Do pip install -U PySide
 - (4) Have this plot save to disk
 - (5) Only put regular r^2 in the main text and say, click here for cross-validated r^2, adjusted r^2, AIC, and BIC.
+	- The labeling wouldn't make sense for a take-one-out model. Do you want to really do things like this? Are you making your whole project way too complicated?
     - Do the same thing with a take-one-out model
     - Plot them
     - What does it mean that the CV R-squared is always so much lower than the non-CV R-squared? Think about this...
