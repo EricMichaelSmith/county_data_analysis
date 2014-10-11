@@ -74,19 +74,136 @@ def main(con, cur):
 #                             ((0, 0, 0), (0.75, 0.75, 0.75)))
 #    print(feature_a.shape)
 
-    # Run additive regression model
-    additive_regression_model(feature_a, ordered_feature_s_l, output_a)
+    # (5) Run forward and backward stepwise selection regression model
+#    forward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
+#    backward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
 
     # Run regression with regularization
-#    regularized_regression(feature_a, ordered_feature_s_l, output_a)
+    regularized_regression(feature_a, ordered_feature_s_l, output_a)
     
     # Run recursive feature elimination with cross-validation
 #    recursive_feature_elimination(feature_a, ordered_feature_s_l, output_a)
+    
+    
+    
+def backward_stepwise_selection(feature_a, feature_s_l, output_a):
+    """ Builds a multivariate linear regression by iteratively removing features. """
+    
+    # Create a dictionary of the scores of each model as features are added
+    score_d = {}
+    
+    
+    ## Loop over all scores
+    for score_s in regression_d.iterkeys():
+        
+        # Initialize entry in the dictionary of scores
+        score_d[score_s] = {'feature_s_l': [], 'score_value_l': []}
+                
+        # Create a list of unselected features
+        i_selected_l = range(0, feature_a.shape[1])
+        i_unselected_l = []
+        
+        while len(i_selected_l) > 1:
+        
+            # Select the feature most correlated with dem_fraction_shift
+            score_l = []
+            for i_feature in i_selected_l:
+                i_model_feature_l = [i for i in i_selected_l if i != i_feature]
+                
+                if score_s == 'Cross-validated R-squared':
+                    explanatory_a = feature_a[:, i_model_feature_l]
+                    clf = linear_model.LinearRegression()
+                    all_cv_scores_l = cross_validation.cross_val_score(clf,
+                                                                       explanatory_a,
+                                                                       output_a,
+                                                                       cv=10)
+                    score_l.append(sum(all_cv_scores_l)/float(len(all_cv_scores_l)))
+                else:
+                    explanatory_a = \
+                        sm.add_constant(feature_a[:, i_model_feature_l].astype(float))
+                    model = sm.OLS(output_a, explanatory_a)
+                    results = model.fit()
+                    score_l.append(getattr(results, regression_d[score_s]['attribute']))
+                
+            i_least_correlated_feature = \
+                i_selected_l[score_l.index(regression_d[score_s]['extremum'](score_l))]
+                
+            print('Next least correlated feature: %s\n    %s = %0.5f' %           
+              (feature_s_l[i_least_correlated_feature],
+               score_s,
+               regression_d[score_s]['extremum'](score_l)))
+            i_selected_l.remove(i_least_correlated_feature)
+            i_unselected_l.append(i_least_correlated_feature)
+            
+            # Add feature and score to the model
+            score_d[score_s]['feature_s_l'].append(feature_s_l[i_least_correlated_feature])
+            score_d[score_s]['score_value_l'].append(regression_d[score_s]['extremum'](score_l))
+            
+        # Add the sole remaining feature to the list of "unselected" features
+        score_d[score_s]['feature_s_l'].append(feature_s_l[i_selected_l[0]])
+        score_d[score_s]['score_value_l'].append(None)
+    
+    
+    ## Plot results
+    
+    # Plot R-squared
+    fig = plt.figure(figsize=(8, 10))
+    ax = fig.add_axes([0.10, 0.45, 0.85, 0.52])
+    score_s = 'R-squared'
+    plotting.plot_line_score_of_features(ax, score_d[score_s]['feature_s_l'],
+                                         score_d[score_s]['score_value_l'],
+                                         extremum_func=None,
+                                         is_backward_selection_b=True,
+                                         ylabel_s=score_s)
+    plt.savefig(os.path.join(config.output_path_s, 'backward_stepwise_selection__R-squared.png'))
+                                         
+    # Plot other scores
+    fig = plt.figure(figsize=(32, 10))
+    score_s_l = ['Adjusted R-squared', 'Cross-validated R-squared', 'AIC', 'BIC']
+    for i_score, score_s in enumerate(score_s_l):
+        ax = fig.add_axes([0.04+0.25*i_score, 0.45, 0.19, 0.52])
+        plotting.plot_line_score_of_features(ax, score_d[score_s]['feature_s_l'],
+                                             score_d[score_s]['score_value_l'],
+                                             extremum_func=regression_d[score_s]['extremum'],
+                                             is_backward_selection_b=True,
+                                             ylabel_s=score_s)        
+    plt.savefig(os.path.join(config.output_path_s, 'backward_stepwise_selection__others.png'))
+    
 
 
-
-def additive_regression_model(feature_a, feature_s_l, output_a):
-    """ Builds a multivariate linear regression by iteratively adding the feature that will most increase the R^2 value. """
+def create_arrays(feature_d, output_d):
+    """ Transform the input and output data from dicts into arrays """
+    
+    # Transform feature dataset
+    feature_s_l = feature_d.keys()
+    feature_a = np.array(feature_d[feature_s_l[0]], ndmin=2).T
+    ordered_feature_s_l = [feature_s_l[0]]
+    for feature_s in feature_s_l[1:]:
+        feature_a = np.concatenate((feature_a, np.array(feature_d[feature_s],
+                                    ndmin=2).T), axis=1)
+        ordered_feature_s_l.append(feature_s)
+        
+    # Transform output dataset
+    output_s = output_d.keys()[0]
+    output_a = np.array(output_d[output_s])
+        
+    # Select only observations without Nones
+    is_none_b_a = np.equal(feature_a, None)
+    no_none_features_b_a = (np.sum(is_none_b_a, axis=1) == 0)
+    feature_a = feature_a[no_none_features_b_a,]
+    output_a = output_a[no_none_features_b_a]
+    
+    # Print how many rows each feature is missing information on
+#    num_none_per_feature_b_a = np.sum(is_none_b_a, axis=0)
+#    for l_feature, feature_s in enumerate(ordered_feature_s_l):
+#        print('%s: %d' % (feature_s, num_none_per_feature_b_a[l_feature]))
+    
+    return (feature_a, ordered_feature_s_l, output_a, no_none_features_b_a)
+    
+    
+    
+def forward_stepwise_selection(feature_a, feature_s_l, output_a):
+    """ Builds a multivariate linear regression by iteratively adding features. """
     
     # Create a dictionary of the scores of each model as features are added
     score_d = {}
@@ -138,38 +255,31 @@ def additive_regression_model(feature_a, feature_s_l, output_a):
             score_d[score_s]['feature_s_l'].append(feature_s_l[i_most_correlated_feature])
             score_d[score_s]['score_value_l'].append(regression_d[score_s]['extremum'](score_l))
     
-    # {{{plot results}}}
-
-
-
-def create_arrays(feature_d, output_d):
-    """ Transform the input and output data from dicts into arrays """
     
-    # Transform feature dataset
-    feature_s_l = feature_d.keys()
-    feature_a = np.array(feature_d[feature_s_l[0]], ndmin=2).T
-    ordered_feature_s_l = [feature_s_l[0]]
-    for feature_s in feature_s_l[1:]:
-        feature_a = np.concatenate((feature_a, np.array(feature_d[feature_s],
-                                    ndmin=2).T), axis=1)
-        ordered_feature_s_l.append(feature_s)
-        
-    # Transform output dataset
-    output_s = output_d.keys()[0]
-    output_a = np.array(output_d[output_s])
-        
-    # Select only observations without Nones
-    is_none_b_a = np.equal(feature_a, None)
-    no_none_features_b_a = (np.sum(is_none_b_a, axis=1) == 0)
-    feature_a = feature_a[no_none_features_b_a,]
-    output_a = output_a[no_none_features_b_a]
+    ## Plot results
     
-    # Print how many rows each feature is missing information on
-#    num_none_per_feature_b_a = np.sum(is_none_b_a, axis=0)
-#    for l_feature, feature_s in enumerate(ordered_feature_s_l):
-#        print('%s: %d' % (feature_s, num_none_per_feature_b_a[l_feature]))
-    
-    return (feature_a, ordered_feature_s_l, output_a, no_none_features_b_a)
+    # Plot R-squared
+    fig = plt.figure(figsize=(8, 10))
+    ax = fig.add_axes([0.10, 0.45, 0.85, 0.52])
+    score_s = 'R-squared'
+    plotting.plot_line_score_of_features(ax, score_d[score_s]['feature_s_l'],
+                                         score_d[score_s]['score_value_l'],
+                                         extremum_func=None,
+                                         is_backward_selection_b=False,
+                                         ylabel_s=score_s)
+    plt.savefig(os.path.join(config.output_path_s, 'forward_stepwise_selection__R-squared.png'))
+                                         
+    # Plot other scores
+    fig = plt.figure(figsize=(32, 10))
+    score_s_l = ['Adjusted R-squared', 'Cross-validated R-squared', 'AIC', 'BIC']
+    for i_score, score_s in enumerate(score_s_l):
+        ax = fig.add_axes([0.04+0.25*i_score, 0.45, 0.19, 0.52])
+        plotting.plot_line_score_of_features(ax, score_d[score_s]['feature_s_l'],
+                                             score_d[score_s]['score_value_l'],
+                                             extremum_func=regression_d[score_s]['extremum'],
+                                             is_backward_selection_b=False,
+                                             ylabel_s=score_s)        
+    plt.savefig(os.path.join(config.output_path_s, 'forward_stepwise_selection__others.png'))
     
     
     

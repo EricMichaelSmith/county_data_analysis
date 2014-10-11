@@ -221,20 +221,37 @@ def plot_axes_at_zero(ax):
     ax.set_xlim(axis_limits_t[0], axis_limits_t[1])
     ax.set_ylim(axis_limits_t[2], axis_limits_t[3])
     return ax
+
 	
 	
+def plot_line_score_of_features(ax, feature_s_l, score_value_l,
+                                extremum_func=None,
+                                is_backward_selection_b=False,
+                                ylabel_s=None):
+    """ Given a list of features feature_s_l and a corresponding list of scores score_value_l, creates a line plot with axes ax. If extremum_func is either max() or min(), the maximum or minimum value, respectively, will be circled.  """
 	
-def plot_line_score_of_features(ax, feature_s_l, score_value_l, forward_or_backward_s,
-								title_s=None, ylabel_s=None):
-	""" Given a list of features feature_s_l and a corresponding list of scores score_value_l, creates a line plot with axes ax. """
-	
-	# Indicate addition or removal of features
-	if forward_or_backward_s == 'forward':
-		feature_s_l[1:] = ['+ ' + feature_s for feature_s in feature_s_l[1:]]
-	elif forward_or_backward_s == 'backward':
-		feature_s_l[1:] = ['- ' + feature_s for feature_s in feature_s_l[1:]]
-		
-	# {{{}}}
+    # Indicate addition or subtraction of features
+    if not is_backward_selection_b:
+        feature_s_l[1:] = ['+ ' + feature_s for feature_s in feature_s_l[1:]]
+    else:
+        feature_s_l[:-1] = ['- ' + feature_s for feature_s in feature_s_l[:-1]]
+        feature_s_l[-1] = '(last remaining feature: ' + feature_s_l[-1] + ')'
+    
+    for l_odd in range(len(score_value_l))[1::2]:
+        ax.axvspan(l_odd-0.5, l_odd+0.5, alpha=0.15,
+                   edgecolor='none', facecolor=[0, 0, 0])
+    ax.plot(range(len(score_value_l)), score_value_l)
+    ax.set_xlim(-0.5, len(score_value_l)-0.5)
+    ax.set_xticks(range(len(score_value_l)))
+    ax.set_xticklabels(feature_s_l, rotation=90)
+    ax.set_ylabel(ylabel_s)
+    
+    # Circle extreme value
+    if extremum_func:
+        extremum_value = \
+            extremum_func(value for value in score_value_l if value is not None)
+        i_extremum = score_value_l.index(extremum_value)
+        ax.scatter(i_extremum, extremum_value)
     
     
     
