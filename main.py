@@ -20,8 +20,8 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 - (4) Have this plot save to disk
 - (5) Only put regular r^2 in the main text and say, click here for cross-validated r^2, adjusted r^2, AIC, and BIC.
     - Do the same thing with a take-one-out model
-    - Add cross-validated R^2 as well
     - Plot them
+    - What does it mean that the CV R-squared is always so much lower than the non-CV R-squared? Think about this...
 - Is it obvious that the R-value of all four models should be the same? Probably see what decimal place they're the same to.
 - (6) Figure out a good way to plot the regularized models: perhaps with a grouped bar graph where every group of bars is a feature and each member of the group is a regularization method? And the features could be ordered according to the strength of the R^2 of the single linear regressions, just like in previous plots
 - (3) Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' loyalty to Obama; but then, of course, you have to explain all of the features clearly and put units on them

@@ -92,8 +92,8 @@ def additive_regression_model(feature_a, feature_s_l, output_a):
     score_d = {}
     
     
-    ## Loop over all scores (other than cross-validated R-squared)
-    for score_s in ['R-squared', 'adjusted R-squared', 'AIC', 'BIC']:
+    ## Loop over all scores
+    for score_s in regression_d.iterkeys():
         
         # Initialize entry in the dictionary of scores
         score_d[score_s] = {'feature_s_l': [], 'score_value_l': []}
@@ -108,11 +108,21 @@ def additive_regression_model(feature_a, feature_s_l, output_a):
             score_l = []
             for i_feature in i_unselected_l:
                 i_model_feature_l = i_selected_l + [i_feature]
-                explanatory_a = \
-                    sm.add_constant(feature_a[:, i_model_feature_l].astype(float))
-                model = sm.OLS(output_a, explanatory_a)
-                results = model.fit()
-                score_l.append(getattr(results, regression_d[score_s]['attribute']))
+                
+                if score_s == 'Cross-validated R-squared':
+                    explanatory_a = feature_a[:, i_model_feature_l]
+                    clf = linear_model.LinearRegression()
+                    all_cv_scores_l = cross_validation.cross_val_score(clf,
+                                                                       explanatory_a,
+                                                                       output_a,
+                                                                       cv=10)
+                    score_l.append(sum(all_cv_scores_l)/float(len(all_cv_scores_l)))
+                else:
+                    explanatory_a = \
+                        sm.add_constant(feature_a[:, i_model_feature_l].astype(float))
+                    model = sm.OLS(output_a, explanatory_a)
+                    results = model.fit()
+                    score_l.append(getattr(results, regression_d[score_s]['attribute']))
                 
             i_most_correlated_feature = \
                 i_unselected_l[score_l.index(regression_d[score_s]['extremum'](score_l))]
@@ -127,11 +137,8 @@ def additive_regression_model(feature_a, feature_s_l, output_a):
             # Add feature and score to the model
             score_d[score_s]['feature_s_l'].append(feature_s_l[i_most_correlated_feature])
             score_d[score_s]['score_value_l'].append(regression_d[score_s]['extremum'](score_l))
-            
-            
-    ## Cross-validated R-squared
-    kf = cross_validation.KFold(output_a.shape[0], n_folds=3)
-    # {{{}}}
+    
+    # {{{plot results}}}
 
 
 
@@ -411,7 +418,7 @@ def regression_confidence_interval_wrapper(index_l, feature1_a, feature2_a):
     
     
 # Dictionary of all information needed for running unregularized regression models with various scores
-regression_d = {'adjusted R-squared': {'attribute': 'rsquared_adj',
+regression_d = {'Adjusted R-squared': {'attribute': 'rsquared_adj',
                                              'extremum': max},
                       'AIC': {'attribute': 'aic',
                               'extremum': min},
