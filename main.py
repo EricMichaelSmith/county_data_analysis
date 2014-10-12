@@ -17,8 +17,10 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
 2014-10-11:
-- Is it obvious that the R-value of all four models should be the same? Probably see what decimal place they're the same to.
 - (6) Figure out a good way to plot the regularized models: perhaps with a grouped bar graph where every group of bars is a feature and each member of the group is a regularization method? And the features could be ordered according to the strength of the R^2 of the single linear regressions, just like in previous plots
+    - See http://matplotlib.org/examples/api/barchart_demo.html and http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.bar
+    - Plot intercepts in log units on the y-axis!
+- OLS and ridge give R^2 ~= 0.37 but lasso and elastic net give R^2 ~= 0.34: should you be worried?
 - (3) Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' loyalty to Obama; but then, of course, you have to explain all of the features clearly and put units on them
 - If it's easy, and AK and HI to the shape plots
 - (1) Make some county shape plots plotting a few interesting features

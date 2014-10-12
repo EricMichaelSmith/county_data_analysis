@@ -468,7 +468,9 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a):
 #    for l_feature, feature_s in enumerate(ordered_feature_s_l):
 #        print('(%d) %s' % (l_feature, feature_s))
 
-    for standardize_b in (False, True):
+# [[[There's no reason to not standardize, right?]]]
+#    for standardize_b in (False, True):
+    for standardize_b in (True):
         
         if standardize_b:
             feature_a = preprocessing.scale(feature_raw_a.astype(float))
@@ -477,44 +479,60 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a):
             feature_a = feature_raw_a.astype(float)
             print('\nRegressors not standardized.')
             
+        coeff_l_d = {}
+            
         # Ordinary least squares
         clf = linear_model.LinearRegression()
         clf.fit(feature_a, output_a)
-        print('\nOrdinary least squares: R^2 = %0.2f' % clf.score(feature_a, output_a))
-        print('Magnitude of R: %0.2f' % (clf.score(feature_a, output_a))**(1.0/2.0))
-        print('Intercept: %0.3g' % clf.intercept_)
+        print('\nOrdinary least squares: R^2 = %0.5f' % clf.score(feature_a, output_a))
+        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0))
+        print('Intercept: %0.5g' % clf.intercept_)
         print_coefficients(clf.coef_, ordered_feature_s_l)
+        coeff_l_d['Ordinary least squares'] = clf.coef_
     
         # Ridge regression with generalized cross-validation
         alpha_l = np.logspace(-15, 5, num=11).tolist()
         clf = linear_model.RidgeCV(alphas=alpha_l)
         clf.fit(feature_a, output_a)
-        print('\nRidge: R^2 = %0.2f, alpha = %0.1g' % (clf.score(feature_a, output_a),
+        print('\nRidge: R^2 = %0.5f, alpha = %0.1g' % (clf.score(feature_a, output_a),
               clf.alpha_))
-        print('Magnitude of R: %0.2f' % (clf.score(feature_a, output_a))**(1.0/2.0))
-        print('Intercept: %0.3g' % clf.intercept_)
+        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0))
+        print('Intercept: %0.5g' % clf.intercept_)
         print_coefficients(clf.coef_, ordered_feature_s_l)
+        coeff_l_d['Ridge regularization'] = clf.coef_
         
         # Lasso regression with generalized cross-validation
         alpha_l = np.logspace(-15, 5, num=11).tolist()
         clf = linear_model.LassoCV(alphas=alpha_l)
         clf.fit(feature_a, output_a)
-        print('\nLasso: R^2 = %0.2f, alpha = %0.1g' % (clf.score(feature_a, output_a),
+        print('\nLasso: R^2 = %0.5f, alpha = %0.1g' % (clf.score(feature_a, output_a),
               clf.alpha_))
-        print('Magnitude of R: %0.2f' % (clf.score(feature_a, output_a))**(1.0/2.0))
-        print('Intercept: %0.3g' % clf.intercept_)
+        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0))
+        print('Intercept: %0.5g' % clf.intercept_)
         print_coefficients(clf.coef_, ordered_feature_s_l)
+        coeff_l_d['Lasso regularization'] = clf.coef_
         
         # Elastic net regression with generalized cross-validation
         l1_ratio_l = [.1, .5, .7, .9, .95, .99, 1]
         alpha_l = np.logspace(-15, 5, num=11).tolist()
         clf = linear_model.ElasticNetCV(l1_ratio=l1_ratio_l, alphas=alpha_l)
         clf.fit(feature_a, output_a)
-        print('\nElastic net: R^2 = %0.2f, l1_ratio = %0.2f, alpha = %0.1g' %
+        print('\nElastic net: R^2 = %0.5f, l1_ratio = %0.2f, alpha = %0.1g' %
               (clf.score(feature_a, output_a), clf.l1_ratio_, clf.alpha_))
-        print('Magnitude of R: %0.2f' % (clf.score(feature_a, output_a))**(1.0/2.0))
-        print('Intercept: %0.3g' % clf.intercept_)
+        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0))
+        print('Intercept: %0.5g' % clf.intercept_)
         print_coefficients(clf.coef_, ordered_feature_s_l)
+        coeff_l_d['Elastic net regularization'] = clf.coef_
+
+        
+        ## Plot a bar graph of the results
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        bar_color_t_l = [(0.5, 0.0, 0.0),
+                         (0.0, 0.5, 0.0),
+                         (0.0, 0.0, 0.5),
+                         (0.5, 0.0, 0.5)]
+        # {{{}}}
     
 
 
