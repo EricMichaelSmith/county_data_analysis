@@ -17,23 +17,16 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
 2014-10-12:
-- (6) Figure out a good way to plot the regularized models: perhaps with a grouped bar graph where every group of bars is a feature and each member of the group is a regularization method? And the features could be ordered according to the strength of the R^2 of the single linear regressions, just like in previous plots
-    - Are any of these values correct? Check them.
-    - Why are most features missing, even for OLS?
-    - Move the legend out of the plot somewhere
-    - What does all of this mean?
-    - Don't plot it in this order - plot it in the order found on the single-regressor figure
-    - Make the plot a lot wider and squatter? I can't tell anything with the bars so long and skinny like that...
-    - Save the plot
-    - What else?
-- OLS and ridge give R^2 ~= 0.37 but lasso and elastic net give R^2 ~= 0.34: should you be worried?
 - (3) Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' loyalty to Obama; but then, of course, you have to explain all of the features clearly and put units on them
 - If it's easy, and AK and HI to the shape plots
 - (1) Make some county shape plots plotting a few interesting features
+- OLS and ridge give R^2 ~= 0.37 but lasso and elastic net give R^2 ~= 0.34: should you be worried?
+- See: are the 9 features selected by lasso / elastic net generally the 9 highest features in the forward and backward selection models?
 - Maybe do something to see if it makes sense that percent_non_senior_citizens_without_insurance should be the third most important feature?
 - Are you satisfied now with your understanding of how the regression models work? Think about all of this some more...
 - See how the ranking of the magnitude of the r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
 - In article, find something that backs up your finding that whites left Obama in droves (call it the Matt Damon effect? Or just be very careful about this...)
+- In article, mention trying regularization in order to reduce the variance inherent in the fit (of course, make sure you know what you're talking about)
 - Before posting, search the code for "{{{" and "[[[" and "((("
 - When you're done with all of that, see the OneNote page task list for other stuff to do.
 """

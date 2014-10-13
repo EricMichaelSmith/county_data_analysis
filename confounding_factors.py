@@ -50,14 +50,17 @@ def main(con, cur):
     feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')    
     
     # (2) Find and plot r-value of each feature with dem_fraction_shift
-#    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
+    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
+    
+    # (3) Make scatter plots of the features that are most highly correlated with dem_fraction_shift
+    many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d)
     
     # (4) Plot pairwise r-values of all features in a heat map
 #    pearsons_r_heatmap(feature_d, feature_by_r_value_s_l)
     
     # Create feature and output variable arrays to be used in regression models
-    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
-        create_arrays(feature_d, output_d)
+#    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
+#        create_arrays(feature_d, output_d)
 
     # Print ordered list of features used in regression models
 #    for i_feature, feature_s in enumerate(ordered_feature_s_l):
@@ -78,8 +81,9 @@ def main(con, cur):
 #    forward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
 #    backward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
 
-    # Run regression with regularization
-    regularized_regression(feature_a, ordered_feature_s_l, output_a)
+    # (6) Run regression with regularization
+#    regularized_regression(feature_a, ordered_feature_s_l, output_a,
+#                           feature_by_r_value_s_l)
     
     # Run recursive feature elimination with cross-validation
 #    recursive_feature_elimination(feature_a, ordered_feature_s_l, output_a)
@@ -280,6 +284,13 @@ def forward_stepwise_selection(feature_a, feature_s_l, output_a):
                                              is_backward_selection_b=False,
                                              ylabel_s=score_s)        
     plt.savefig(os.path.join(config.output_path_s, 'forward_stepwise_selection__others.png'))
+
+
+
+def many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d):
+    """ {{{}}} """
+    
+    # {{{}}}
     
     
     
@@ -460,7 +471,8 @@ def recursive_feature_elimination(X, ordered_feature_s_l, y):
     
 
 
-def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a):
+def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
+                           feature_by_r_value_s_l):
     """ Runs regularized linear regressions on all features. """
     
     # Output features for reference
@@ -530,8 +542,8 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a):
 
         
         ## Plot a bar graph of the results
-        fig = plt.figure(figsize=[8, 10])
-        ax = fig.add_axes([0.10, 0.45, 0.85, 0.52])
+        fig = plt.figure(figsize=[16, 6.5])
+        ax = fig.add_axes([0.10, 0.53, 0.88, 0.41])
         bar_color_t_l = [(0.5, 0.0, 0.0),
                          (0.0, 0.5, 0.0),
                          (0.0, 0.0, 0.5),
@@ -543,18 +555,27 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a):
         bar_handle_l_l = []
         for i_method, method_s in enumerate(method_s_l):
             i_feature_a = np.array(range(len(coeff_l_d[method_s])))
+            
+            # Sort features by the magnitude of the r-value of their correlation with dem_fraction_shift
+            sorted_abs_coeff_a = [abs(coeff_l_d[method_s][ordered_feature_s_l.index(feature_s)]) for feature_s in feature_by_r_value_s_l]
+            
             bar_handle_l = ax.bar(left=i_feature_a-0.4+0.2*i_method,
-                                height=coeff_l_d[method_s],
-                                width=0.2,
-                                color=bar_color_t_l[i_method],
-                                linewidth=0)
+                                  height=sorted_abs_coeff_a[::-1],
+                                  width=0.2,
+                                  color=bar_color_t_l[i_method],
+                                  linewidth=0)
             bar_handle_l_l += [bar_handle_l]
         ax.set_xlim(-0.5, len(ordered_feature_s_l)-0.5)
         ax.set_xticks(range(len(ordered_feature_s_l)))
-        ax.set_xticklabels(ordered_feature_s_l, rotation=90)
+        ax.set_xticklabels(feature_by_r_value_s_l[::-1],
+                           horizontalalignment='right',
+                           rotation=45)
         ax.set_yscale('log')
         ax.set_ylabel('Regression coefficient (standardized)')
-        ax.legend([handle_l[0] for handle_l in bar_handle_l_l], method_s_l)
+        ax.legend([handle_l[0] for handle_l in bar_handle_l_l], method_s_l,
+                  loc='lower right', bbox_to_anchor=(1.00, -1.25))
+
+        plt.savefig(os.path.join(config.output_path_s, 'regularized_regression.png'))
     
 
 
