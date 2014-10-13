@@ -289,6 +289,10 @@ def forward_stepwise_selection(feature_a, feature_s_l, output_a):
 
 def many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d):
     """ {{{}}} """
+
+    num_rows = 2
+    num_columns = 4
+    feature_param_d = {}
     
     # {{{}}}
     
