@@ -470,7 +470,9 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a):
 
 # [[[There's no reason to not standardize, right?]]]
 #    for standardize_b in (False, True):
-    for standardize_b in (True):
+    for standardize_b in (True,):
+        
+        max_iter = 1e6
         
         if standardize_b:
             feature_a = preprocessing.scale(feature_raw_a.astype(float))
@@ -503,7 +505,7 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a):
         
         # Lasso regression with generalized cross-validation
         alpha_l = np.logspace(-15, 5, num=11).tolist()
-        clf = linear_model.LassoCV(alphas=alpha_l)
+        clf = linear_model.LassoCV(alphas=alpha_l, max_iter=max_iter)
         clf.fit(feature_a, output_a)
         print('\nLasso: R^2 = %0.5f, alpha = %0.1g' % (clf.score(feature_a, output_a),
               clf.alpha_))
@@ -515,7 +517,9 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a):
         # Elastic net regression with generalized cross-validation
         l1_ratio_l = [.1, .5, .7, .9, .95, .99, 1]
         alpha_l = np.logspace(-15, 5, num=11).tolist()
-        clf = linear_model.ElasticNetCV(l1_ratio=l1_ratio_l, alphas=alpha_l)
+        clf = linear_model.ElasticNetCV(l1_ratio=l1_ratio_l,
+                                        alphas=alpha_l,
+                                        max_iter=max_iter)
         clf.fit(feature_a, output_a)
         print('\nElastic net: R^2 = %0.5f, l1_ratio = %0.2f, alpha = %0.1g' %
               (clf.score(feature_a, output_a), clf.l1_ratio_, clf.alpha_))
@@ -526,13 +530,31 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a):
 
         
         ## Plot a bar graph of the results
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
+        fig = plt.figure(figsize=[8, 10])
+        ax = fig.add_axes([0.10, 0.45, 0.85, 0.52])
         bar_color_t_l = [(0.5, 0.0, 0.0),
                          (0.0, 0.5, 0.0),
                          (0.0, 0.0, 0.5),
                          (0.5, 0.0, 0.5)]
-        # {{{}}}
+        method_s_l = ['Ordinary least squares',
+                      'Ridge regularization',
+                      'Lasso regularization',
+                      'Elastic net regularization']
+        bar_handle_l_l = []
+        for i_method, method_s in enumerate(method_s_l):
+            i_feature_a = np.array(range(len(coeff_l_d[method_s])))
+            bar_handle_l = ax.bar(left=i_feature_a-0.4+0.2*i_method,
+                                height=coeff_l_d[method_s],
+                                width=0.2,
+                                color=bar_color_t_l[i_method],
+                                linewidth=0)
+            bar_handle_l_l += [bar_handle_l]
+        ax.set_xlim(-0.5, len(ordered_feature_s_l)-0.5)
+        ax.set_xticks(range(len(ordered_feature_s_l)))
+        ax.set_xticklabels(ordered_feature_s_l, rotation=90)
+        ax.set_yscale('log')
+        ax.set_ylabel('Regression coefficient (standardized)')
+        ax.legend([handle_l[0] for handle_l in bar_handle_l_l], method_s_l)
     
 
 
