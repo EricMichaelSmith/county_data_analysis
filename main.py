@@ -20,6 +20,7 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 - (3) Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' loyalty to Obama; but then, of course, you have to explain all of the features clearly and put units on them
 - If it's easy, and AK and HI to the shape plots
 - (1) Make some county shape plots plotting a few interesting features
+- Maybe see, in OLS, which features have coeffs that are significantly away from 0?
 - OLS and ridge give R^2 ~= 0.37 but lasso and elastic net give R^2 ~= 0.34: should you be worried?
 - See: are the 9 features selected by lasso / elastic net generally the 9 highest features in the forward and backward selection models?
 - Maybe do something to see if it makes sense that percent_non_senior_citizens_without_insurance should be the third most important feature?
