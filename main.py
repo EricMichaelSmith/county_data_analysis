@@ -18,6 +18,10 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
 2014-10-12:
 - (3) Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' loyalty to Obama; but then, of course, you have to explain all of the features clearly and put units on them
+    - Multiply all of the fraction features by 100 and change the xlabels accordingly
+    - Manually specify the xlims of all plots: chop percents off at 0 and 100 or some subset thereof (and for median age in years, cut this off at 20 to 70, right?)
+    - Probably add more separation between the plots so that the ylabels don't run into the sides of the neighboring plots?
+    - Anything else? Look at all plots carefully to see if they make sense!
 - If it's easy, and AK and HI to the shape plots
 - (1) Make some county shape plots plotting a few interesting features
 - Maybe see, in OLS, which features have coeffs that are significantly away from 0?

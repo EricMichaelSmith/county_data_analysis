@@ -149,7 +149,8 @@ def make_scatter_plot(ax, x_l_t, y_l_t, color_t_t, plot_axes_at_zero_b=False,
                                         
     # Plot x=0 and y=0 lines
     if plot_axes_at_zero_b:
-        plot_axes_at_zero(ax)
+        ax.axhline(y=0, color='k')
+        ax.axvline(x=0, color='k')
     
     # Plot regression line (one set of points only)
     if plot_regression_b and len(x_l_t) == 1:
@@ -205,21 +206,6 @@ def make_shape_plot(fig, valueSR, shapeIndexL, shapeL, colorTypeS, color_t_t,
     if colorBarS and max_magnitude != -1:
         color_ax = fig.add_axes([0.25, 0.10, 0.50, 0.05])
         make_colorbar(color_ax, max_magnitude, color_t_t, colorBarS)
-    return ax
-    
-    
-    
-def plot_axes_at_zero(ax):
-    """
-    Plots x=0 and y=0 lines on the current plot. The stretching of the lines and
-    resetting of the axis limits is kind of a hack.
-    """
-    
-    axis_limits_t = ax.axis()
-    plt.plot([2*axis_limits_t[0], 2*axis_limits_t[1]], [0, 0], 'k')
-    plt.plot([0, 0], [2*axis_limits_t[2], 2*axis_limits_t[3]], 'k')
-    ax.set_xlim(axis_limits_t[0], axis_limits_t[1])
-    ax.set_ylim(axis_limits_t[2], axis_limits_t[3])
     return ax
 
 	

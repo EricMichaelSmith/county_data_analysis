@@ -283,19 +283,44 @@ def forward_stepwise_selection(feature_a, feature_s_l, output_a):
                                              extremum_func=regression_d[score_s]['extremum'],
                                              is_backward_selection_b=False,
                                              ylabel_s=score_s)        
-    plt.savefig(os.path.join(config.output_path_s, 'forward_stepwise_selection__others.png'))
+    plt.savefig(os.path.join(config.output_path_s,
+                             'forward_stepwise_selection__others.png'))
 
 
 
 def many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d):
-    """ {{{}}} """
+    """ Makes scatter plots of the six features most highly correlated with dem_fraction_shift """
 
+    # Number of plots and x-labels for plots
     num_rows = 2
-    num_columns = 4
-    feature_param_d = {}
+    num_columns = 3
+    feature_param_d = {'white_not_hispanic_fraction':
+                       {'xlabel': 'White (not Hispanic) fraction'},
+                       'black_not_hispanic_fraction':
+                       {'xlabel': 'Black (not Hispanic) fraction'},
+                       'never_married':
+                       {'xlabel': 'Percent never married'},
+                       'in_poverty':
+                       {'xlabel': 'Percent in poverty'},
+                       'median_age':
+                       {'xlabel': 'Median age in years'},
+                       'foreign_born':
+                       {'xlabel': 'Percent foreign-born'}}
+                       
+    fig = plt.figure(figsize=(18, 9))
+    for i_plot in range(num_rows*num_columns):
+        ax = fig.add_subplot(num_rows, num_columns, i_plot+1)
+        x_feature_s = feature_by_r_value_s_l[-i_plot-1]
+        x_feature_a = feature_d[x_feature_s]
+        y_feature_a = output_d['dem_fraction_shift']
+        plotting.make_scatter_plot(ax, (x_feature_a,), (y_feature_a,),
+                                   ((0.25, 0.25, 0.25),),
+                                   plot_axes_at_zero_b=True, plot_regression_b=True)
+        ax.set_xlabel(feature_param_d[x_feature_s])
+        ax.set_ylabel('% change in Obama vote share')
     
-    # {{{}}}
-    
+    plt.savefig(os.path.join(config.output_path_s, 'many_scatter_plots.png'))
+
     
     
 def pearsons_r_heatmap(feature_d, feature_by_r_value_s_l):
