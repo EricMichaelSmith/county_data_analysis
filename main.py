@@ -30,6 +30,7 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 - Maybe do something to see if it makes sense that percent_non_senior_citizens_without_insurance should be the third most important feature?
 - Are you satisfied now with your understanding of how the regression models work? Think about all of this some more...
 - See how the ranking of the magnitude of the r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
+- Before you start writing your article, quickly look back at Hilary Parker's [right?] poisoned-name post for guidance
 - In article, find something that backs up your finding that whites left Obama in droves (call it the Matt Damon effect? Or just be very careful about this...)
 - In article, mention trying regularization in order to reduce the variance inherent in the fit (of course, make sure you know what you're talking about)
 - Before posting, search the code for "{{{" and "[[[" and "((("
