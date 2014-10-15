@@ -295,31 +295,77 @@ def many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d):
     num_rows = 2
     num_columns = 3
     feature_param_d = {'white_not_hispanic_fraction':
-                       {'xlabel': 'White (not Hispanic) fraction'},
+                       {'multiplier': 100,
+                        'xlabel': 'Pecent white (not Hispanic)',
+                        'xlim_l': [0, 100]},
                        'black_not_hispanic_fraction':
-                       {'xlabel': 'Black (not Hispanic) fraction'},
+                       {'multiplier': 100,
+                        'xlabel': 'Percent black (not Hispanic)',
+                        'xlim_l': [0, 100]},
                        'never_married':
-                       {'xlabel': 'Percent never married'},
+                       {'multiplier': 1,
+                        'xlabel': 'Percent never married',
+                        'xlim_l': [0, 100]},
                        'in_poverty':
-                       {'xlabel': 'Percent in poverty'},
+                       {'multiplier': 1,
+                        'xlabel': 'Percent in poverty',
+                        'xlim_l': [0, 60]},
                        'median_age':
-                       {'xlabel': 'Median age in years'},
+                       {'multiplier': 1,
+                        'xlabel': 'Median age in years',
+                        'xlim_l': [20, 70]},
                        'foreign_born':
-                       {'xlabel': 'Percent foreign-born'}}
+                       {'multiplier': 1,
+                        'xlabel': 'Percent foreign-born',
+                        'xlim_l': [0, 60]}}
                        
-    fig = plt.figure(figsize=(18, 9))
-    for i_plot in range(num_rows*num_columns):
-        ax = fig.add_subplot(num_rows, num_columns, i_plot+1)
-        x_feature_s = feature_by_r_value_s_l[-i_plot-1]
-        x_feature_a = feature_d[x_feature_s]
-        y_feature_a = output_d['dem_fraction_shift']
-        plotting.make_scatter_plot(ax, (x_feature_a,), (y_feature_a,),
-                                   ((0.25, 0.25, 0.25),),
-                                   plot_axes_at_zero_b=True, plot_regression_b=True)
-        ax.set_xlabel(feature_param_d[x_feature_s])
-        ax.set_ylabel('% change in Obama vote share')
+    fig = plt.figure(figsize=(18, 8))
+    for i_row in range(num_rows):
+        for i_column in range(num_columns):
+            i_plot = i_row * num_columns + i_column
+            ax = fig.add_axes([0.07+0.32*i_column, 0.55-0.48*i_row, 0.25, 0.40])
+            x_feature_s = feature_by_r_value_s_l[-i_plot-1]
+            x_feature_a = feature_param_d[x_feature_s]['multiplier'] * \
+                np.array(feature_d[x_feature_s])
+            y_feature_a = np.array(output_d['dem_fraction_shift'])
+            plotting.make_scatter_plot(ax, (x_feature_a,), (y_feature_a,),
+                                       ((0.25, 0.25, 0.25),),
+                                       plot_axes_at_zero_b=True, plot_regression_b=True)
+            ax.set_xlabel(feature_param_d[x_feature_s]['xlabel'])
+            ax.set_xlim(feature_param_d[x_feature_s]['xlim_l'])
+            ax.set_ylabel('% change in Obama vote share')
     
     plt.savefig(os.path.join(config.output_path_s, 'many_scatter_plots.png'))
+    
+    
+    
+def many_shape_plots(feature_d, output_d):
+    """ Plots a few features on a map of the US """
+    
+    num_rows = 2
+    num_columns = 2
+    feature_param_d = {'fertility': {'color_t_t': ((1.0, 0.0, 0.0), (0.0, 1.0, 1.0)),
+                                     'multiplier': 1,
+                                     'title': '{{{}}}'},
+                       'median_household_income': {'color_t_t': ((0.0, 0.5, 1.0),
+                                                                 (1.0, 0.5, 0.0)),
+                                                   'multiplier': 1,
+                                                   'title': '{{{}}}'},
+                       'sex_ratio': {'color_t_t': ((0.5, 1.0, 0.0), (0.5, 0.0, 1.0)),
+                                     'multiplier': 1,
+                                     'title': '{{{}}}'},
+                       'veterans': {'color_t_t': ((0.0, 0.0, 1.0), (1.0, 1.0, 0.0)),
+                                    'multiplier': 1,
+                                    'title': '{{{}}}'}}
+    feature_order_s_l = ['fertility', 'median_household_income', 'sex_ratio', 'veterans']
+    
+    fig = plt.figure(figsize=(16, 12))
+    for i_row in range(num_rows):
+        for i_column in range(num_columns):
+            i_plot = i_row * num_columns + i_column
+            ax = fig.add_axes([0.7+0.45*i_column, 0.55-0.48*i_row, 0.38, 0.41])
+            feature_s = feature_order_s_l[i_plot]
+            # {{{}}}
 
     
     

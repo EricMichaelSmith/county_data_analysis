@@ -16,21 +16,20 @@ s: string
 t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
-2014-10-12:
-- (3) Make a scatter plot of the top 8 or so correlators with Dem shift to give a sense of these groups' loyalty to Obama; but then, of course, you have to explain all of the features clearly and put units on them
-    - Multiply all of the fraction features by 100 and change the xlabels accordingly
-    - Manually specify the xlims of all plots: chop percents off at 0 and 100 or some subset thereof (and for median age in years, cut this off at 20 to 70, right?)
-    - Probably add more separation between the plots so that the ylabels don't run into the sides of the neighboring plots?
-    - Anything else? Look at all plots carefully to see if they make sense!
+2014-10-15:
 - If it's easy, and AK and HI to the shape plots
 - (1) Make some county shape plots plotting a few interesting features
+    - Make sure the labels are correct
 - Maybe see, in OLS, which features have coeffs that are significantly away from 0?
 - OLS and ridge give R^2 ~= 0.37 but lasso and elastic net give R^2 ~= 0.34: should you be worried?
+- Should you look into the extreme values in your features (percent not married, for instance) and give a plausible explanation, or should you not bother about this?
 - See: are the 9 features selected by lasso / elastic net generally the 9 highest features in the forward and backward selection models?
 - Maybe do something to see if it makes sense that percent_non_senior_citizens_without_insurance should be the third most important feature?
 - Are you satisfied now with your understanding of how the regression models work? Think about all of this some more...
 - See how the ranking of the magnitude of the r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
 - Before you start writing your article, quickly look back at Hilary Parker's [right?] poisoned-name post for guidance
+- Also look at the OkTrends blog for a *sensitive* handling of issues of race
+- Yes, the racial correlations are huge and unavoidable - deal with it quickly, delicately, and respectfully, and then move on to the trends you find *beyond* that
 - In article, find something that backs up your finding that whites left Obama in droves (call it the Matt Damon effect? Or just be very careful about this...)
 - In article, mention trying regularization in order to reduce the variance inherent in the fit (of course, make sure you know what you're talking about)
 - Before posting, search the code for "{{{" and "[[[" and "((("
