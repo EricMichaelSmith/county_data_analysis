@@ -25,6 +25,7 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 - Should you look into the extreme values in your features (percent not married, for instance) and give a plausible explanation, or should you not bother about this?
 - See: are the 9 features selected by lasso / elastic net generally the 9 highest features in the forward and backward selection models?
 - Maybe do something to see if it makes sense that percent_non_senior_citizens_without_insurance should be the third most important feature?
+- Check: what are the requirements for Medicare? Are all senior citizens automatically eligible? If so, maybe percent_non_senior_citizens_without_insurance captures *all* people without insurance, right? Or am I grievously mistaken?
 - Are you satisfied now with your understanding of how the regression models work? Think about all of this some more...
 - See how the ranking of the magnitude of the r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
 - Before you start writing your article, quickly look back at Hilary Parker's [right?] poisoned-name post for guidance
