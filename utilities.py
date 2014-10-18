@@ -27,6 +27,7 @@ reload(selecting)
 
 
 def add_derived_features(con, cur):
+    """ Add features that are derived from features in the database directly read in from text files. """
     
     
     ## Electoral

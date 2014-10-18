@@ -29,6 +29,7 @@ sys.path.append(config.GeoDaSandbox_path_s)
 from pyGDsandbox.dataIO import dbf2df
 
 def main(con, cur):
+    """ Create and clean the election2008 database. """
     
     # Read in data
     final_df, shape_index_l, shape_l = read_data()

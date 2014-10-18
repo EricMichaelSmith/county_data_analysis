@@ -30,6 +30,7 @@ reload(config_local)
 
 
 def main(con, cur):
+    """ Create and clean the election2012 database. """
     
     # Prepare for reading in 2012 election data
     file_path_s = os.path.join(config.raw_data_path_s, 'election_statistics',
@@ -95,10 +96,7 @@ GROUP BY election2012_fips);""")
         
         
 def extract_votes(cur, party_s):
-    """
-    For each row, find the column that corresponds to the party given in party_s
-    and store the corresponding value in the 'party' column
-    """
+    """ For each row, find the column that corresponds to the party given in party_s and store the corresponding value in the 'party' column. """
     
     # Add empty column to store vote total information in
     command_s = ("""ALTER TABLE election2012_raw

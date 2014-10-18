@@ -40,31 +40,32 @@ reload(utilities)
 
 
 def main(con, cur):
+    """ Run all analyses used for the confounding factors project. """
     
     # Load feature data
     feature_s_l = config.feature_s_l
     feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')
     
     # Load output variable data
-#    output_s = 'dem_fraction_shift'
-#    output_d = selecting.select_fields(con, cur, [output_s], output_type='dictionary')
+    output_s = 'dem_fraction_shift'
+    output_d = selecting.select_fields(con, cur, [output_s], output_type='dictionary')
     
     # Create feature and output variable arrays to be used in regression models
 #    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
 #        create_arrays(feature_d, output_d)
 
     # Load fips data and shape data for maps
-    fips_d = selecting.select_fields(con, cur, ['fips_fips'], output_type='dictionary')
-    shape_index_l, shape_l = election2008.read_data()[1:]
+#    fips_d = selecting.select_fields(con, cur, ['fips_fips'], output_type='dictionary')
+#    shape_index_l, shape_l = election2008.read_data()[1:]
 
     # (1) Make sample shape plots of a few interesting features
-    many_shape_plots(feature_d, fips_d, shape_index_l, shape_l)
+#    many_shape_plots(feature_d, fips_d, shape_index_l, shape_l)
     
     # (2) Find and plot r-value of each feature with dem_fraction_shift
-#    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
+    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
     
     # (3) Make scatter plots of the features that are most highly correlated with dem_fraction_shift
-#    many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d)
+    many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d)
     
     # (4) Plot pairwise r-values of all features in a heat map
 #    pearsons_r_heatmap(feature_d, feature_by_r_value_s_l)
@@ -350,25 +351,29 @@ def many_shape_plots(feature_d, fips_d, shape_index_l, shape_l):
     
     num_rows = 2
     num_columns = 2
-    feature_param_d = {'median_age': {'color_t_t': ((1.0, 0.0, 0.0),
-                                                   (1.0, 1.0, 1.0),
-                                                   (0.0, 1.0, 1.0)),
+    feature_param_d = {'median_age': {'color_t_t': ((0.0, 0.5, 1.0),
+                                                    (1.0, 1.0, 1.0),
+                                                    (1.0, 0.5, 0.0)),
+                                     'color_value_t': (20.0, 36.8, 65.0),
                                      'multiplier': 1,
                                      'title': 'Median age (years)'},
                        'median_household_income': {'color_t_t': ((0.0, 0.5, 1.0),
                                                                  (1.0, 1.0, 1.0),
                                                                  (1.0, 0.5, 0.0)),
+                                                   'color_value_t': (22, 51.9, 122),
                                                    'multiplier': 0.001,
                                                    'title': \
                                         'Median household income (thousands of dollars)'},
-                       'sex_ratio': {'color_t_t': ((0.5, 1.0, 0.0),
+                       'sex_ratio': {'color_t_t': ((0.0, 0.5, 1.0),
                                                    (1.0, 1.0, 1.0),
-                                                   (0.5, 0.0, 1.0)),
+                                                   (1.0, 0.5, 0.0)),
+                                     'color_value_t': (70, 100, 330),
                                      'multiplier': 1,
                                      'title': 'Males per 100 females'},
-                       'veterans': {'color_t_t': ((0.0, 0.0, 1.0),
+                       'veterans': {'color_t_t': ((0.0, 0.5, 1.0),
                                                   (1.0, 1.0, 1.0),
-                                                  (1.0, 1.0, 0.0)),
+                                                  (1.0, 0.5, 0.0)),
+                                    'color_value_t': (2, 13, 29),
                                     'multiplier': 1,
                                     'title': 'Percent veterans'}}
     feature_order_s_l = ['median_age', 'median_household_income', 'sex_ratio', 'veterans']
@@ -391,11 +396,13 @@ def many_shape_plots(feature_d, fips_d, shape_index_l, shape_l):
                                      value_sr=value_sr,
                                      shape_index_l=shape_index_l,
                                      shape_l=shape_l,
-                                     color_type_s='gradient',
+                                     color_type_s='unbalanced_gradient',
                                      color_t_t=feature_param_d[feature_s]['color_t_t'],
                                      ax=ax,
                                      colorbar_s=feature_param_d[feature_s]['title'],
-                                     colorbar_ax=colorbar_ax)
+                                     colorbar_ax=colorbar_ax,
+                                     color_value_t=\
+                                         feature_param_d[feature_s]['color_value_t'])
 
     plt.savefig(os.path.join(config.output_path_s, 'many_shape_plots.png'))
 

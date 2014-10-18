@@ -26,6 +26,7 @@ reload(utilities)
 
 
 def main(con, cur):
+    """ Create and clean the database of FIPS values. """
 
     # Prepare for reading in FIPS data
     file_path = os.path.join(config.raw_data_path_s, 'fips_codes',

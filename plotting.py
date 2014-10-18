@@ -42,44 +42,64 @@ def define_boolean_color(boolean_sr, color_t_t):
     for l_column, column_s in enumerate(color_column_t):
         color_df.loc[boolean_sr, column_s] = color_t_t[0][l_column]
         color_df.loc[~boolean_sr, column_s] = color_t_t[1][l_column]
-    return (color_df, -1)
-    # The second entry of the returned tuple specifies that there is no maximum
-    # magnitude, like we'd have if this were define_gradient_color
+    return (color_df, None)
+    # The second entry of the returned tuple specifies that there is no maximum or minimum magnitude, like we'd have if this were define_gradient_color
     
     
     
-def define_gradient_color(value_sr, color_t_t):
+def define_balanced_gradient_color(value_sr, color_t_t):
     """ 
-    value_sr is the series to define the color from. color_t_t should be three
-    tuples of length 3: one if the value is maximally negative, one if it is
-    zero, and one if it is maximally positive. Intermediate values will be
-    interpolated.
+    This will return a gradient spanning from minus the highest-magnitude value to plus the highest-magnitude value. value_sr is the series to define the color from. color_t_t should be three tuples of length 3: one if the value is maximally negative, one if it is zero, and one if it is maximally positive. Intermediate values will be interpolated.
     """
     
     # Find the maximum-magnitude value in the column of interest: this will be
     # represented with the brightest color.
     max_magnitude = max([abs(i) for i in value_sr])
 
-    # For each index in inputDF, interpolate between the values of color_t_t to
-    # find the approprate color of the index
+    # For each value, interpolate between the values of color_t_t to find the approprate color
     gradient_df = pd.DataFrame(np.ndarray((len(value_sr.index), 3)),
                               index=value_sr.index,
                               columns=['red', 'green', 'blue'])
     for index in value_sr.index:
         gradient_df.loc[index] = \
-        interpolate_gradient_color(color_t_t,
-                                   value_sr[index],
-                                   max_magnitude)
-    return (gradient_df, max_magnitude)
+        interpolate_balanced_gradient_color(color_t_t,
+                                            value_sr[index],
+                                            max_magnitude)
+    return (gradient_df, (-max_magnitude, 0, max_magnitude))
 
+
+
+def define_unbalanced_gradient_color(value_sr, color_t_t, color_value_t):
+    """ 
+    This will return a gradient spanning from lowest value to the highest value. value_sr is the series to define the color from. color_t_t should be three tuples of length 3: one for the lowest value, one for the midrange value, and one for the highest value (unless this is overridden by manual color value specification in color_value_t). Intermediate values will be interpolated.
+    """
+    
+    # Find the max, min, and mean values
+    if color_value_t:
+        min_value, mid_value, max_value = color_value_t
+    else:
+        min_value = np.min(value_sr)
+        max_value = np.max(value_sr)
+        mid_value = float(min_value + max_value)/2.0
+
+    # For each value, interpolate between the values of color_t_t to find the approprate color
+    gradient_df = pd.DataFrame(np.ndarray((len(value_sr.index), 3)),
+                              index=value_sr.index,
+                              columns=['red', 'green', 'blue'])
+    for index in value_sr.index:
+        gradient_df.loc[index] = \
+        interpolate_unbalanced_gradient_color(color_t_t,
+                                              value_sr[index],
+                                              min_value,
+                                              mid_value,
+                                              max_value)
+    return (gradient_df, (min_value, mid_value, max_value))
+    
 
                                                       
-def interpolate_gradient_color(color_t_t, value, max_magnitude):
+def interpolate_balanced_gradient_color(color_t_t, value, max_magnitude):
     """
-    color_t_t is three tuples of length 3: one if the value is maximally negative,
-    one if it is zero, and one if it is maximally positive. max_magnitude sets the
-    intensity of the interpolated color. The function returns a tuple containing
-    the interpolated color for the input value.
+    color_t_t is three tuples of length 3: one if the value is maximally negative, one if it is zero, and one if it is maximally positive. max_magnitude sets the intensity of the interpolated color. The function returns a tuple containing the interpolated color for the input value.
     """
     
     normalized_magnitude = abs(value)/max_magnitude
@@ -94,21 +114,41 @@ def interpolate_gradient_color(color_t_t, value, max_magnitude):
     interpolated_color_a = (normalized_magnitude * np.array(far_color_t) +
                           (1-normalized_magnitude) * np.array(near_color_t))
     return tuple(interpolated_color_a)
+
+
+
+def interpolate_unbalanced_gradient_color(color_t_t, value, min_value,
+                                          mid_value, max_value):
+    """
+    color_t_t is three tuples of length 3: one for min_value, one for mid_value, and one for max_value. The function returns a tuple containing the interpolated color for the input value.
+    """
+    
+    if value < mid_value:
+        low_value = min_value
+        low_color_t = color_t_t[0]
+        high_value = mid_value
+        high_color_t = color_t_t[1]
+    else:
+        low_value = mid_value
+        low_color_t = color_t_t[1]
+        high_value = max_value
+        high_color_t = color_t_t[2]
+    interval = high_value - low_value
+    interpolated_color_a = (value - low_value)/interval * np.array(high_color_t) + \
+        (high_value - value)/interval * np.array(low_color_t)
+        
+    return tuple(interpolated_color_a)
     
     
 
-def make_colorbar(ax, max_magnitude, color_t_t, label_s):
-    """
-    Creates a colorbar with the given axis handle ax; the colors are defined
-    according to color_t_t and the values are mapped from -max_magnitude to
-    +max_magnitude. The colorbar is labeled with label_s.
-    """
+def make_colorbar(ax, color_t_t, color_value_t, label_s):
+    """ Creates a colorbar with the given axis handle ax; the colors are defined according to color_t_t and the values are mapped according to color_value_t. color_t_t and color_value_t must currently both be of length 3. The colorbar is labeled with label_s. """
 
     # Create the colormap for the colorbar    
-    colormap = make_colormap(color_t_t)    
+    colormap = make_colormap(color_t_t, color_value_t)    
     
     # Create the colorbar
-    norm = mpl.colors.Normalize(vmin=-max_magnitude, vmax=max_magnitude)
+    norm = mpl.colors.Normalize(vmin=color_value_t[0], vmax=color_value_t[2])
     color_bar_handle = mpl.colorbar.ColorbarBase(ax, cmap=colormap,
                                                norm=norm,
                                                orientation='horizontal')
@@ -116,17 +156,21 @@ def make_colorbar(ax, max_magnitude, color_t_t, label_s):
     
     
     
-def make_colormap(color_t_t):
-    """ Given colors defined in color_t_t, creates a LinearSegmentedColormap object. """
+def make_colormap(color_t_t, color_value_t):
+    """ Given colors defined in color_t_t and values defined in color_value_t, creates a LinearSegmentedColormap object. Works with only three colors and corresponding values for now. """
+    
+    # Find how far the second color is from the first and third
+    second_value_fraction = float(color_value_t[1] - color_value_t[0]) / \
+        float(color_value_t[2] - color_value_t[0])
     
     # Create the colormap
-    color_l = ['red', 'green', 'blue']
+    color_s_l = ['red', 'green', 'blue']
     color_map_entry = lambda color_t_t, i_color: \
         ((0.0, color_t_t[0][i_color], color_t_t[0][i_color]),
-         (0.5, color_t_t[1][i_color], color_t_t[1][i_color]),
+         (second_value_fraction, color_t_t[1][i_color], color_t_t[1][i_color]),
          (1.0, color_t_t[2][i_color], color_t_t[2][i_color]))
-    color_d = {colorS: color_map_entry(color_t_t, i_color) for i_color, colorS
-              in enumerate(color_l)}
+    color_d = {color_s: color_map_entry(color_t_t, i_color) for i_color, color_s
+              in enumerate(color_s_l)}
     colormap = LinearSegmentedColormap('ShapePlotColorMap', color_d)
     
     return colormap
@@ -159,8 +203,8 @@ def make_scatter_plot(ax, x_l_t, y_l_t, color_t_t, plot_axes_at_zero_b=False,
 
 
 def make_shape_plot(fig, value_sr, shape_index_l, shape_l, color_type_s, color_t_t,
-                    ax=None, colorbar_s=None, colorbar_ax=None):
-    """ Creates a shape plot given figure handle fig. value_sr is the Series containing the data to be plotted; shape_index_l indexes the shapes to plot by FIPS code; shape_l contains the shapes to plot; color_type_s defines whether the plot will be shaded according to a binary or a gradient; color_t_t defines the colors to shade with. colorbar_s labels the colorbar. ax and colorbar_ax are optional pre-defined axes.
+                    ax=None, colorbar_s=None, colorbar_ax=None, color_value_t=None):
+    """ Creates a shape plot given figure handle fig. value_sr is the Series containing the data to be plotted; shape_index_l indexes the shapes to plot by FIPS code; shape_l contains the shapes to plot; color_type_s defines whether the plot will be shaded according to a binary or a gradient; color_t_t defines the colors to shade with. colorbar_s labels the colorbar. ax and colorbar_ax are optional pre-defined axes. If color_value_t is defined, it sets the values that will be shown by the respective colors in color_t_t if 'unbalanced_gradient' is specified for color_type_s.
     """
     
     # Set shape colors
@@ -169,11 +213,15 @@ def make_shape_plot(fig, value_sr, shape_index_l, shape_l, color_type_s, color_t
     shape_bounds_all_shapes_l = [float('inf'), float('inf'), float('-inf'), float('-inf')]    
 
     color_types_d = {'boolean': lambda: define_boolean_color(value_sr, color_t_t),
-                   'gradient': lambda: define_gradient_color(value_sr, color_t_t)}
-    color_t = color_types_d[color_type_s]()
-    color_df = color_t[0]
-    max_magnitude = color_t[1]
-            
+                     'balanced_gradient': \
+                         lambda: define_balanced_gradient_color(value_sr, color_t_t),
+                     'unbalanced_gradient': \
+                         lambda: define_unbalanced_gradient_color(value_sr, color_t_t,
+                                                                  color_value_t)}
+    color_df, color_value_t = color_types_d[color_type_s]()
+    color_df = np.around(color_df, decimals=5)
+    # To prevent rounding errors leading to values outside the [0, 1] interval
+                
     # Add shapes to plot
     for l_fips in value_sr.index:
         this_counties_color_t = tuple(color_df.loc[l_fips])
@@ -204,10 +252,10 @@ def make_shape_plot(fig, value_sr, shape_index_l, shape_l, color_type_s, color_t
     ax.set_axis_off()
     
     # Add colorbar
-    if colorbar_s and max_magnitude != -1:
+    if colorbar_s and color_value_t:
         if not colorbar_ax:
             colorbar_ax = fig.add_axes([0.25, 0.10, 0.50, 0.05])
-        make_colorbar(colorbar_ax, max_magnitude, color_t_t, colorbar_s)
+        make_colorbar(colorbar_ax, color_t_t, color_value_t, colorbar_s)
     return ax
 
 	

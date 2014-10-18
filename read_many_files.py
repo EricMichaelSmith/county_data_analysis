@@ -59,6 +59,7 @@ reload(utilities)
 
 
 def main(con, cur):
+    """ Read and transform many data sources needed for the county_data_analysis database. """
 
     # Fields to extract: first level indicates folder, second level indicates
     # file name, third level indicates fields. In length-2 tuples, index 0
