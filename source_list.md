@@ -34,7 +34,6 @@ Data sources for the county_data_analysis database
 
 2014_health_indicators
 * Available from http://www.countyhealthrankings.org/rankings/data, a program from Robert Wood Johnson
-* The data in the last 10 counties in Wyoming were corrupted, so I had to delete them manually.
 
 election2008
 * 2008 county election data (2008 Presidential General Election, County Results, National Atlas of the United States, http://nationalatlas.gov/atlasftp.html?openChapters=chphist#chphist)
