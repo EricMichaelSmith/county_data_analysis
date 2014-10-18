@@ -26,31 +26,31 @@ import scipy as sp
 
 
 
-def define_boolean_color(booleanSR, color_t_t):
+def define_boolean_color(boolean_sr, color_t_t):
     """
-    booleanSR is the boolean-valued series to define the color from. color_t_t
+    boolean_sr is the boolean-valued series to define the color from. color_t_t
     should be two tuples of length 3: one if the boolean value is
     true and one if it is false.
     """
     
-    colorColumnT = ('red', 'green', 'blue')
-    colorDF = pd.DataFrame(np.ndarray((len(booleanSR.index), 3)), 
-                           index=booleanSR.index,
-                           columns=colorColumnT)
+    color_column_t = ('red', 'green', 'blue')
+    color_df = pd.DataFrame(np.ndarray((len(boolean_sr.index), 3)), 
+                           index=boolean_sr.index,
+                           columns=color_column_t)
 
     # Set columns one by one
-    for lColumn, columnS in enumerate(colorColumnT):
-        colorDF.loc[booleanSR, columnS] = color_t_t[0][lColumn]
-        colorDF.loc[~booleanSR, columnS] = color_t_t[1][lColumn]
-    return (colorDF, -1)
+    for l_column, column_s in enumerate(color_column_t):
+        color_df.loc[boolean_sr, column_s] = color_t_t[0][l_column]
+        color_df.loc[~boolean_sr, column_s] = color_t_t[1][l_column]
+    return (color_df, -1)
     # The second entry of the returned tuple specifies that there is no maximum
     # magnitude, like we'd have if this were define_gradient_color
     
     
     
-def define_gradient_color(valueSR, color_t_t):
+def define_gradient_color(value_sr, color_t_t):
     """ 
-    valueSR is the series to define the color from. color_t_t should be three
+    value_sr is the series to define the color from. color_t_t should be three
     tuples of length 3: one if the value is maximally negative, one if it is
     zero, and one if it is maximally positive. Intermediate values will be
     interpolated.
@@ -58,19 +58,19 @@ def define_gradient_color(valueSR, color_t_t):
     
     # Find the maximum-magnitude value in the column of interest: this will be
     # represented with the brightest color.
-    max_magnitude = max([abs(i) for i in valueSR])
+    max_magnitude = max([abs(i) for i in value_sr])
 
     # For each index in inputDF, interpolate between the values of color_t_t to
     # find the approprate color of the index
-    gradientDF = pd.DataFrame(np.ndarray((len(valueSR.index), 3)),
-                              index=valueSR.index,
+    gradient_df = pd.DataFrame(np.ndarray((len(value_sr.index), 3)),
+                              index=value_sr.index,
                               columns=['red', 'green', 'blue'])
-    for index in valueSR.index:
-        gradientDF.loc[index] = \
+    for index in value_sr.index:
+        gradient_df.loc[index] = \
         interpolate_gradient_color(color_t_t,
-                                   valueSR[index],
+                                   value_sr[index],
                                    max_magnitude)
-    return (gradientDF, max_magnitude)
+    return (gradient_df, max_magnitude)
 
 
                                                       
@@ -82,18 +82,18 @@ def interpolate_gradient_color(color_t_t, value, max_magnitude):
     the interpolated color for the input value.
     """
     
-    normalizedMagnitude = abs(value)/max_magnitude
+    normalized_magnitude = abs(value)/max_magnitude
     
-    # The higher the magnitude, the closer the color to farColorT; the lower
-    # the magnitude, the closter the color to nearColorT
-    nearColorT = color_t_t[1]
+    # The higher the magnitude, the closer the color to far_color_t; the lower
+    # the magnitude, the closter the color to near_color_t
+    near_color_t = color_t_t[1]
     if value < 0:
-        farColorT = color_t_t[0]
+        far_color_t = color_t_t[0]
     else:
-        farColorT = color_t_t[2]
-    interpolatedColorA = (normalizedMagnitude * np.array(farColorT) +
-                          (1-normalizedMagnitude) * np.array(nearColorT))
-    return tuple(interpolatedColorA)
+        far_color_t = color_t_t[2]
+    interpolated_color_a = (normalized_magnitude * np.array(far_color_t) +
+                          (1-normalized_magnitude) * np.array(near_color_t))
+    return tuple(interpolated_color_a)
     
     
 
@@ -109,10 +109,10 @@ def make_colorbar(ax, max_magnitude, color_t_t, label_s):
     
     # Create the colorbar
     norm = mpl.colors.Normalize(vmin=-max_magnitude, vmax=max_magnitude)
-    colorBarHandle = mpl.colorbar.ColorbarBase(ax, cmap=colormap,
+    color_bar_handle = mpl.colorbar.ColorbarBase(ax, cmap=colormap,
                                                norm=norm,
                                                orientation='horizontal')
-    colorBarHandle.set_label(label_s)
+    color_bar_handle.set_label(label_s)
     
     
     
@@ -158,54 +158,56 @@ def make_scatter_plot(ax, x_l_t, y_l_t, color_t_t, plot_axes_at_zero_b=False,
     
 
 
-def make_shape_plot(fig, valueSR, shapeIndexL, shapeL, colorTypeS, color_t_t,
-                    colorBarS=None):
-    """ Creates a shape plot given figure handle fig. valueSR is the Series containing the data to be plotted; shapeIndexL indexes the shapes to plot by FIPS code; shapeL contains the shapes to plot; colorTypeS defines whether the plot will be shaded according to a binary or a gradient; color_t_t defines the colors to shade with. colorBarS labels the colorbar.
+def make_shape_plot(fig, value_sr, shape_index_l, shape_l, color_type_s, color_t_t,
+                    ax=None, colorbar_s=None, colorbar_ax=None):
+    """ Creates a shape plot given figure handle fig. value_sr is the Series containing the data to be plotted; shape_index_l indexes the shapes to plot by FIPS code; shape_l contains the shapes to plot; color_type_s defines whether the plot will be shaded according to a binary or a gradient; color_t_t defines the colors to shade with. colorbar_s labels the colorbar. ax and colorbar_ax are optional pre-defined axes.
     """
     
     # Set shape colors
-    ax = fig.add_subplot(1, 1, 1)
-    shapeBoundsAllShapesL = [float('inf'), float('inf'), float('-inf'), float('-inf')]    
+    if not ax:
+        ax = fig.add_subplot(1, 1, 1)
+    shape_bounds_all_shapes_l = [float('inf'), float('inf'), float('-inf'), float('-inf')]    
 
-    colorTypesD = {'boolean': lambda: define_boolean_color(valueSR, color_t_t),
-                   'gradient': lambda: define_gradient_color(valueSR, color_t_t)}
-    colorT = colorTypesD[colorTypeS]()
-    colorDF = colorT[0]
-    max_magnitude = colorT[1]
+    color_types_d = {'boolean': lambda: define_boolean_color(value_sr, color_t_t),
+                   'gradient': lambda: define_gradient_color(value_sr, color_t_t)}
+    color_t = color_types_d[color_type_s]()
+    color_df = color_t[0]
+    max_magnitude = color_t[1]
             
     # Add shapes to plot
-    for lFIPS in valueSR.index:
-        thisCountiesColorT = tuple(colorDF.loc[lFIPS])
+    for l_fips in value_sr.index:
+        this_counties_color_t = tuple(color_df.loc[l_fips])
         
-        iShapeL = [i for i,j in enumerate(shapeIndexL) if j==int(lFIPS)]
-        for iShape in iShapeL:       
-            shapeBoundsThisShapeL = shapeL[iShape].bbox
-            shapeBoundsAllShapesL[0] = \
-                min(shapeBoundsThisShapeL[0], shapeBoundsAllShapesL[0])
-            shapeBoundsAllShapesL[1] = \
-                min(shapeBoundsThisShapeL[1], shapeBoundsAllShapesL[1])
-            shapeBoundsAllShapesL[2] = \
-                max(shapeBoundsThisShapeL[2], shapeBoundsAllShapesL[2])
-            shapeBoundsAllShapesL[3] = \
-                max(shapeBoundsThisShapeL[3], shapeBoundsAllShapesL[3])
+        i_shape_l = [i for i,j in enumerate(shape_index_l) if j==int(l_fips)]
+        for i_shape in i_shape_l:       
+            shape_bounds_this_shape_l = shape_l[i_shape].bbox
+            shape_bounds_all_shapes_l[0] = \
+                min(shape_bounds_this_shape_l[0], shape_bounds_all_shapes_l[0])
+            shape_bounds_all_shapes_l[1] = \
+                min(shape_bounds_this_shape_l[1], shape_bounds_all_shapes_l[1])
+            shape_bounds_all_shapes_l[2] = \
+                max(shape_bounds_this_shape_l[2], shape_bounds_all_shapes_l[2])
+            shape_bounds_all_shapes_l[3] = \
+                max(shape_bounds_this_shape_l[3], shape_bounds_all_shapes_l[3])
             
-            thisShapesPatches = []
-            pointsA = np.array(shapeL[iShape].points)
-            shapeFileParts = shapeL[iShape].parts
-            allPartsL = list(shapeFileParts) + [pointsA.shape[0]]
-            for lPart in xrange(len(shapeFileParts)):
-                thisShapesPatches.append(mpl.patches.Polygon(
-                    pointsA[allPartsL[lPart]:allPartsL[lPart+1]]))
-            ax.add_collection(mpl.collections.PatchCollection(thisShapesPatches,
-                                              color=thisCountiesColorT))
+            this_shapes_patches = []
+            points_a = np.array(shape_l[i_shape].points)
+            shape_file_parts = shape_l[i_shape].parts
+            all_parts_l = list(shape_file_parts) + [points_a.shape[0]]
+            for l_part in xrange(len(shape_file_parts)):
+                this_shapes_patches.append(mpl.patches.Polygon(
+                    points_a[all_parts_l[l_part]:all_parts_l[l_part+1]]))
+            ax.add_collection(mpl.collections.PatchCollection(this_shapes_patches,
+                                              color=this_counties_color_t))
     ax.set_xlim(-127, -65)
     ax.set_ylim(20, 50)
     ax.set_axis_off()
     
     # Add colorbar
-    if colorBarS and max_magnitude != -1:
-        color_ax = fig.add_axes([0.25, 0.10, 0.50, 0.05])
-        make_colorbar(color_ax, max_magnitude, color_t_t, colorBarS)
+    if colorbar_s and max_magnitude != -1:
+        if not colorbar_ax:
+            colorbar_ax = fig.add_axes([0.25, 0.10, 0.50, 0.05])
+        make_colorbar(colorbar_ax, max_magnitude, color_t_t, colorbar_s)
     return ax
 
 	

@@ -17,18 +17,20 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 
 2014-10-15:
-- If it's easy, and AK and HI to the shape plots
 - (1) Make some county shape plots plotting a few interesting features
+    - Have the colorbar limits not be balanced between positive and negative; will this be hard?
     - Make sure the labels are correct
 - Maybe see, in OLS, which features have coeffs that are significantly away from 0?
-- OLS and ridge give R^2 ~= 0.37 but lasso and elastic net give R^2 ~= 0.34: should you be worried?
+    - For the non-racial features that you think might be important, see if all of their coefficients are significantly away from zero
 - Should you look into the extreme values in your features (percent not married, for instance) and give a plausible explanation, or should you not bother about this?
 - See: are the 9 features selected by lasso / elastic net generally the 9 highest features in the forward and backward selection models?
 - Maybe do something to see if it makes sense that percent_non_senior_citizens_without_insurance should be the third most important feature?
 - Check: what are the requirements for Medicare? Are all senior citizens automatically eligible? If so, maybe percent_non_senior_citizens_without_insurance captures *all* people without insurance, right? Or am I grievously mistaken?
 - Are you satisfied now with your understanding of how the regression models work? Think about all of this some more...
 - See how the ranking of the magnitude of the r-values lines up with the coefficients of the normalized features in the multiple linear regression: will this tell you something about the covariance of the features?
+- When you're writing the article, maybe divide it into sections with clear section titles?
 - Before you start writing your article, quickly look back at Hilary Parker's [right?] poisoned-name post for guidance
+- When talking about the sex ratio plot, mention the outlier of good ol' Loving County, TX
 - Also look at the OkTrends blog for a *sensitive* handling of issues of race
 - Yes, the racial correlations are huge and unavoidable - deal with it quickly, delicately, and respectfully, and then move on to the trends you find *beyond* that
 - In article, find something that backs up your finding that whites left Obama in droves (call it the Matt Damon effect? Or just be very careful about this...)

@@ -20,7 +20,7 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-#import pandas as pd
+import pandas as pd
 #import pdb
 from scipy import stats
 from sklearn import cross_validation, feature_selection, linear_model, preprocessing
@@ -28,8 +28,8 @@ import statsmodels.api as sm
 
 import config
 reload(config)
-#import election2008
-#reload(election2008)
+import election2008
+reload(election2008)
 import plotting
 reload(plotting)
 import selecting
@@ -41,26 +41,41 @@ reload(utilities)
 
 def main(con, cur):
     
-    # Load output variable data
-    output_s = 'dem_fraction_shift'
-    output_d = selecting.select_fields(con, cur, [output_s], output_type='dictionary')
-    
     # Load feature data
     feature_s_l = config.feature_s_l
-    feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')    
+    feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')
     
-    # (2) Find and plot r-value of each feature with dem_fraction_shift
-    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
-    
-    # (3) Make scatter plots of the features that are most highly correlated with dem_fraction_shift
-    many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d)
-    
-    # (4) Plot pairwise r-values of all features in a heat map
-#    pearsons_r_heatmap(feature_d, feature_by_r_value_s_l)
+    # Load output variable data
+#    output_s = 'dem_fraction_shift'
+#    output_d = selecting.select_fields(con, cur, [output_s], output_type='dictionary')
     
     # Create feature and output variable arrays to be used in regression models
 #    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
 #        create_arrays(feature_d, output_d)
+
+    # Load fips data and shape data for maps
+    fips_d = selecting.select_fields(con, cur, ['fips_fips'], output_type='dictionary')
+    shape_index_l, shape_l = election2008.read_data()[1:]
+
+    # (1) Make sample shape plots of a few interesting features
+    many_shape_plots(feature_d, fips_d, shape_index_l, shape_l)
+    
+    # (2) Find and plot r-value of each feature with dem_fraction_shift
+#    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
+    
+    # (3) Make scatter plots of the features that are most highly correlated with dem_fraction_shift
+#    many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d)
+    
+    # (4) Plot pairwise r-values of all features in a heat map
+#    pearsons_r_heatmap(feature_d, feature_by_r_value_s_l)
+
+    # (5) Run forward and backward stepwise selection regression model
+#    forward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
+#    backward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
+
+    # (6) Run regression with regularization
+#    regularized_regression(feature_a, ordered_feature_s_l, output_a,
+#                           feature_by_r_value_s_l)
 
     # Print ordered list of features used in regression models
 #    for i_feature, feature_s in enumerate(ordered_feature_s_l):
@@ -71,19 +86,10 @@ def main(con, cur):
 #    fips_d = selecting.select_fields(con, cur, [fips_s], output_type='dictionary')
 #    print([i[1] for i in enumerate(fips_d['fips_fips']) if ~no_none_features_b_a[i[0]]])
 #    fips_sr = pd.Series(data=no_none_features_b_a, index=fips_d['fips_fips'])
-#    shape_index_l, shape_l = election2008.read_data()[1:]
 #    shape_fig = plt.figure(figsize=(11,6))
 #    plotting.make_shape_plot(shape_fig, fips_sr, shape_index_l, shape_l, 'boolean',
 #                             ((0, 0, 0), (0.75, 0.75, 0.75)))
 #    print(feature_a.shape)
-
-    # (5) Run forward and backward stepwise selection regression model
-#    forward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
-#    backward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
-
-    # (6) Run regression with regularization
-#    regularized_regression(feature_a, ordered_feature_s_l, output_a,
-#                           feature_by_r_value_s_l)
     
     # Run recursive feature elimination with cross-validation
 #    recursive_feature_elimination(feature_a, ordered_feature_s_l, output_a)
@@ -339,33 +345,59 @@ def many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d):
     
     
     
-def many_shape_plots(feature_d, output_d):
-    """ Plots a few features on a map of the US """
+def many_shape_plots(feature_d, fips_d, shape_index_l, shape_l):
+    """ Plots a few features in feature_d on a map of the US using the FIPS index in fips_d, the shape index in shape_index_l, and the shape information in shape_l. """
     
     num_rows = 2
     num_columns = 2
-    feature_param_d = {'fertility': {'color_t_t': ((1.0, 0.0, 0.0), (0.0, 1.0, 1.0)),
+    feature_param_d = {'median_age': {'color_t_t': ((1.0, 0.0, 0.0),
+                                                   (1.0, 1.0, 1.0),
+                                                   (0.0, 1.0, 1.0)),
                                      'multiplier': 1,
-                                     'title': '{{{}}}'},
+                                     'title': 'Median age (years)'},
                        'median_household_income': {'color_t_t': ((0.0, 0.5, 1.0),
+                                                                 (1.0, 1.0, 1.0),
                                                                  (1.0, 0.5, 0.0)),
-                                                   'multiplier': 1,
-                                                   'title': '{{{}}}'},
-                       'sex_ratio': {'color_t_t': ((0.5, 1.0, 0.0), (0.5, 0.0, 1.0)),
+                                                   'multiplier': 0.001,
+                                                   'title': \
+                                        'Median household income (thousands of dollars)'},
+                       'sex_ratio': {'color_t_t': ((0.5, 1.0, 0.0),
+                                                   (1.0, 1.0, 1.0),
+                                                   (0.5, 0.0, 1.0)),
                                      'multiplier': 1,
-                                     'title': '{{{}}}'},
-                       'veterans': {'color_t_t': ((0.0, 0.0, 1.0), (1.0, 1.0, 0.0)),
+                                     'title': 'Males per 100 females'},
+                       'veterans': {'color_t_t': ((0.0, 0.0, 1.0),
+                                                  (1.0, 1.0, 1.0),
+                                                  (1.0, 1.0, 0.0)),
                                     'multiplier': 1,
-                                    'title': '{{{}}}'}}
-    feature_order_s_l = ['fertility', 'median_household_income', 'sex_ratio', 'veterans']
+                                    'title': 'Percent veterans'}}
+    feature_order_s_l = ['median_age', 'median_household_income', 'sex_ratio', 'veterans']
     
     fig = plt.figure(figsize=(16, 12))
     for i_row in range(num_rows):
         for i_column in range(num_columns):
             i_plot = i_row * num_columns + i_column
-            ax = fig.add_axes([0.7+0.45*i_column, 0.55-0.48*i_row, 0.38, 0.41])
+            width_spacing = 0.49
+            height_spacing = 0.49
+            ax = fig.add_axes([0.02+width_spacing*i_column, 0.58-height_spacing*i_row,
+                               0.47, 0.38])
+            colorbar_ax = fig.add_axes([0.07+width_spacing*i_column,
+                                        0.58-height_spacing*i_row,
+                                        0.37, 0.03])
             feature_s = feature_order_s_l[i_plot]
-            # {{{}}}
+            value_sr = feature_param_d[feature_s]['multiplier'] * \
+                pd.Series(data=feature_d[feature_s], index=fips_d['fips_fips'])
+            plotting.make_shape_plot(fig=fig,
+                                     value_sr=value_sr,
+                                     shape_index_l=shape_index_l,
+                                     shape_l=shape_l,
+                                     color_type_s='gradient',
+                                     color_t_t=feature_param_d[feature_s]['color_t_t'],
+                                     ax=ax,
+                                     colorbar_s=feature_param_d[feature_s]['title'],
+                                     colorbar_ax=colorbar_ax)
+
+    plt.savefig(os.path.join(config.output_path_s, 'many_shape_plots.png'))
 
     
     
