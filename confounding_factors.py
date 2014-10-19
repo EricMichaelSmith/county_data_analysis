@@ -17,6 +17,7 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
+from __future__ import print_function
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -51,8 +52,8 @@ def main(con, cur):
     output_d = selecting.select_fields(con, cur, [output_s], output_type='dictionary')
     
     # Create feature and output variable arrays to be used in regression models
-#    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
-#        create_arrays(feature_d, output_d)
+    feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
+        create_arrays(feature_d, output_d)
 
     # Load fips data and shape data for maps
 #    fips_d = selecting.select_fields(con, cur, ['fips_fips'], output_type='dictionary')
@@ -62,10 +63,10 @@ def main(con, cur):
 #    many_shape_plots(feature_d, fips_d, shape_index_l, shape_l)
     
     # (2) Find and plot r-value of each feature with dem_fraction_shift
-    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
+#    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
     
     # (3) Make scatter plots of the features that are most highly correlated with dem_fraction_shift
-    many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d)
+#    many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d)
     
     # (4) Plot pairwise r-values of all features in a heat map
 #    pearsons_r_heatmap(feature_d, feature_by_r_value_s_l)
@@ -77,6 +78,9 @@ def main(con, cur):
     # (6) Run regression with regularization
 #    regularized_regression(feature_a, ordered_feature_s_l, output_a,
 #                           feature_by_r_value_s_l)
+                           
+    # Run OLS on all features simultaneously and investigate individual features
+    full_feature_ols(feature_a, ordered_feature_s_l, output_a)
 
     # Print ordered list of features used in regression models
 #    for i_feature, feature_s in enumerate(ordered_feature_s_l):
@@ -124,10 +128,14 @@ def backward_stepwise_selection(feature_a, feature_s_l, output_a):
                 if score_s == 'Cross-validated R-squared':
                     explanatory_a = feature_a[:, i_model_feature_l]
                     clf = linear_model.LinearRegression()
-                    all_cv_scores_l = cross_validation.cross_val_score(clf,
-                                                                       explanatory_a,
-                                                                       output_a,
-                                                                       cv=10)
+#                    all_cv_scores_l = cross_validation.cross_val_score(clf,
+#                                                                       explanatory_a,
+#                                                                       output_a,
+#                                                                       cv=10)
+                    cv = cross_validation.ShuffleSplit(explanatory_a.shape[0],
+                                                       n_iter=100)
+                    all_cv_scores_l = cross_validation.cross_val_score(clf, explanatory_a,
+                                                                       output_a, cv=cv)
                     score_l.append(sum(all_cv_scores_l)/float(len(all_cv_scores_l)))
                 else:
                     explanatory_a = \
@@ -240,10 +248,14 @@ def forward_stepwise_selection(feature_a, feature_s_l, output_a):
                 if score_s == 'Cross-validated R-squared':
                     explanatory_a = feature_a[:, i_model_feature_l]
                     clf = linear_model.LinearRegression()
-                    all_cv_scores_l = cross_validation.cross_val_score(clf,
-                                                                       explanatory_a,
-                                                                       output_a,
-                                                                       cv=10)
+#                    all_cv_scores_l = cross_validation.cross_val_score(clf,
+#                                                                       explanatory_a,
+#                                                                       output_a,
+#                                                                       cv=10)
+                    cv = cross_validation.ShuffleSplit(explanatory_a.shape[0],
+                                                       n_iter=100)
+                    all_cv_scores_l = cross_validation.cross_val_score(clf, explanatory_a,
+                                                                       output_a, cv=cv)
                     score_l.append(sum(all_cv_scores_l)/float(len(all_cv_scores_l)))
                 else:
                     explanatory_a = \
@@ -292,6 +304,19 @@ def forward_stepwise_selection(feature_a, feature_s_l, output_a):
                                              ylabel_s=score_s)        
     plt.savefig(os.path.join(config.output_path_s,
                              'forward_stepwise_selection__others.png'))
+                             
+                             
+                             
+def full_feature_ols(feature_a, ordered_feature_s_l, output_a):
+    """ Runs a multiple linear regression with ordinary least squares on all features of the set simultaneously and prints a summary of the results. """
+    
+    feature_df = pd.DataFrame(data=feature_a, columns=ordered_feature_s_l)
+    feature_with_constant_df = sm.add_constant(feature_df)
+    output_df = pd.DataFrame(data=output_a, columns=['dem_fraction_shift'])
+    ols_model = sm.OLS(output_df, feature_with_constant_df)
+    ols_results = ols_model.fit()
+    with open(os.path.join(config.output_path_s, 'full_feature_ols.txt'), 'w+') as f:
+        print(ols_results.summary(), file=f)
 
 
 
@@ -548,15 +573,16 @@ def pearsons_r_single_features(feature_d, output_d):
 
     
 
-def print_coefficients(coeff_l, ordered_feature_s_l):
-    """ Prints a ranked list of all features and their coefficients. """
+def print_coefficients(coeff_l, ordered_feature_s_l, f):
+    """ Prints a ranked list of all features and their coefficients to file f. """
 
     coeff_magnitude_l = [abs(i) for i in coeff_l]
     i_sorted_coefficients_l = [i[0] for i in sorted(enumerate(coeff_magnitude_l),
                                                     key=lambda x:x[1])]
-    print('Feature ranking:')
+    print('Feature ranking:', file=f)
     for i_feature in i_sorted_coefficients_l[::-1]:
-        print('    %s: %0.3g' % (ordered_feature_s_l[i_feature], coeff_l[i_feature]))
+        print('    %s: %0.3g' % (ordered_feature_s_l[i_feature], coeff_l[i_feature]),
+              file=f)
 
 
 
@@ -594,28 +620,30 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
 #    for l_feature, feature_s in enumerate(ordered_feature_s_l):
 #        print('(%d) %s' % (l_feature, feature_s))
 
-# [[[There's no reason to not standardize, right?]]]
-#    for standardize_b in (False, True):
-    for standardize_b in (True,):
+    standardize_b = True
+    # Yes, it wouldn't make sense to not standardize the features of a regularized regression.  
+    
+    with open(os.path.join(config.output_path_s, 'regularized_regression.txt'), 'w+') as f:
         
         max_iter = 1e6
         
         if standardize_b:
             feature_a = preprocessing.scale(feature_raw_a.astype(float))
-            print('\nRegressors standardized.')
+            print('\nRegressors standardized.', file=f)
         else:
             feature_a = feature_raw_a.astype(float)
-            print('\nRegressors not standardized.')
+            print('\nRegressors not standardized.', file=f)
             
         coeff_l_d = {}
             
         # Ordinary least squares
         clf = linear_model.LinearRegression()
         clf.fit(feature_a, output_a)
-        print('\nOrdinary least squares: R^2 = %0.5f' % clf.score(feature_a, output_a))
-        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0))
-        print('Intercept: %0.5g' % clf.intercept_)
-        print_coefficients(clf.coef_, ordered_feature_s_l)
+        print('\nOrdinary least squares: R^2 = %0.5f' % clf.score(feature_a, output_a),
+              file=f)
+        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0), file=f)
+        print('Intercept: %0.5g' % clf.intercept_, file=f)
+        print_coefficients(clf.coef_, ordered_feature_s_l, f)
         coeff_l_d['Ordinary least squares'] = clf.coef_
     
         # Ridge regression with generalized cross-validation
@@ -623,10 +651,10 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
         clf = linear_model.RidgeCV(alphas=alpha_l)
         clf.fit(feature_a, output_a)
         print('\nRidge: R^2 = %0.5f, alpha = %0.1g' % (clf.score(feature_a, output_a),
-              clf.alpha_))
-        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0))
-        print('Intercept: %0.5g' % clf.intercept_)
-        print_coefficients(clf.coef_, ordered_feature_s_l)
+              clf.alpha_), file=f)
+        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0), file=f)
+        print('Intercept: %0.5g' % clf.intercept_, file=f)
+        print_coefficients(clf.coef_, ordered_feature_s_l, f)
         coeff_l_d['Ridge regularization'] = clf.coef_
         
         # Lasso regression with generalized cross-validation
@@ -634,10 +662,10 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
         clf = linear_model.LassoCV(alphas=alpha_l, max_iter=max_iter)
         clf.fit(feature_a, output_a)
         print('\nLasso: R^2 = %0.5f, alpha = %0.1g' % (clf.score(feature_a, output_a),
-              clf.alpha_))
-        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0))
-        print('Intercept: %0.5g' % clf.intercept_)
-        print_coefficients(clf.coef_, ordered_feature_s_l)
+              clf.alpha_), file=f)
+        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0), file=f)
+        print('Intercept: %0.5g' % clf.intercept_, file=f)
+        print_coefficients(clf.coef_, ordered_feature_s_l, f)
         coeff_l_d['Lasso regularization'] = clf.coef_
         
         # Elastic net regression with generalized cross-validation
@@ -648,10 +676,10 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
                                         max_iter=max_iter)
         clf.fit(feature_a, output_a)
         print('\nElastic net: R^2 = %0.5f, l1_ratio = %0.2f, alpha = %0.1g' %
-              (clf.score(feature_a, output_a), clf.l1_ratio_, clf.alpha_))
-        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0))
-        print('Intercept: %0.5g' % clf.intercept_)
-        print_coefficients(clf.coef_, ordered_feature_s_l)
+              (clf.score(feature_a, output_a), clf.l1_ratio_, clf.alpha_), file=f)
+        print('Magnitude of R: %0.5f' % (clf.score(feature_a, output_a))**(1.0/2.0), file=f)
+        print('Intercept: %0.5g' % clf.intercept_, file=f)
+        print_coefficients(clf.coef_, ordered_feature_s_l, f)
         coeff_l_d['Elastic net regularization'] = clf.coef_
 
         
