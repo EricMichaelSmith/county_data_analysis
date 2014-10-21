@@ -22,8 +22,6 @@ import sys
 
 import config
 reload(config)
-import confounding_factors
-reload(confounding_factors)
 import fips
 reload(fips)
 import election2008
@@ -32,6 +30,8 @@ import election2012
 reload(election2012)
 import read_many_files
 reload(read_many_files)
+import regression
+reload(regression)
 import utilities
 reload(utilities)
 
@@ -53,8 +53,8 @@ def main():
     # Add derived features
     utilities.add_derived_features(con, cur)
         
-    # Find confounding factors
-    #confounding_factors.main(con, cur)
+    # Run regression analysis
+    #regression.main(con, cur)
     
     # Wrap up
     con.commit()
