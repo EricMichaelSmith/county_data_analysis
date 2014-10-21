@@ -4,7 +4,7 @@ Created on Thu Sep 18 08:50:58 2014
 
 @author: Eric
 
-Tests for confounding factors in the voting/economy shift correlation.
+Performs regression analysis in the county_data_analysis project.
 
 Suffixes at the end of variable names:
 a: numpy array
@@ -41,14 +41,14 @@ reload(utilities)
 
 
 def main(con, cur):
-    """ Run all analyses used for the confounding factors project. """
+    """ Run all regression analyses used for the county_data_analysis project. """
     
     # Load feature data
     feature_s_l = config.feature_s_l
     feature_d = selecting.select_fields(con, cur, feature_s_l, output_type='dictionary')
     
     # Load output variable data
-    output_s = 'dem_fraction_shift'
+    output_s = global_output_s
     output_d = selecting.select_fields(con, cur, [output_s], output_type='dictionary')
     
     # Create feature and output variable arrays to be used in regression models
@@ -56,28 +56,28 @@ def main(con, cur):
         create_arrays(feature_d, output_d)
 
     # Load fips data and shape data for maps
-#    fips_d = selecting.select_fields(con, cur, ['fips_fips'], output_type='dictionary')
-#    shape_index_l, shape_l = election2008.read_data()[1:]
+    fips_d = selecting.select_fields(con, cur, ['fips_fips'], output_type='dictionary')
+    shape_index_l, shape_l = election2008.read_data()[1:]
 
     # (1) Make sample shape plots of a few interesting features
-#    many_shape_plots(feature_d, fips_d, shape_index_l, shape_l)
+    many_shape_plots(feature_d, fips_d, shape_index_l, shape_l)
     
     # (2) Find and plot r-value of each feature with dem_fraction_shift
-#    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
+    feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
     
     # (3) Make scatter plots of the features that are most highly correlated with dem_fraction_shift
-#    many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d)
+    many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d)
     
     # (4) Plot pairwise r-values of all features in a heat map
-#    pearsons_r_heatmap(feature_d, feature_by_r_value_s_l)
+    pearsons_r_heatmap(feature_d, feature_by_r_value_s_l)
 
     # (5) Run forward and backward stepwise selection regression model
-#    forward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
-#    backward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
+    forward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
+    backward_stepwise_selection(feature_a, ordered_feature_s_l, output_a)
 
     # (6) Run regression with regularization
-#    regularized_regression(feature_a, ordered_feature_s_l, output_a,
-#                           feature_by_r_value_s_l)
+    regularized_regression(feature_a, ordered_feature_s_l, output_a,
+                           feature_by_r_value_s_l)
                            
     # Run OLS on all features simultaneously and investigate individual features
     full_feature_ols(feature_a, ordered_feature_s_l, output_a)
@@ -730,6 +730,9 @@ def regression_confidence_interval_wrapper(index_l, feature1_a, feature2_a):
     
     
     
+# Name of feature used as dependent (output) variable in all regression models
+global_output_s = 'rep_fraction_spread'
+
 # Dictionary of all information needed for running unregularized regression models with various scores
 regression_d = {'Adjusted R-squared': {'attribute': 'rsquared_adj',
                                              'extremum': max},

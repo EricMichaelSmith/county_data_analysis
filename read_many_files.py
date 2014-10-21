@@ -149,8 +149,7 @@ def main(con, cur):
                             31: 'smoking',
                             36: 'obese',
                             71: 'teen_birth_rate',
-                            76: 'percent_non_senior_citizens_without_insurance',
-                            144: 'violent_crime_rate'}}},
+                            76: 'percent_non_senior_citizens_without_insurance'}}},
                'unemployment_statistics':
                {'laucnty08.txt':
                 {'delimiter': None,
