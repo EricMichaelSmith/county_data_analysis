@@ -326,30 +326,42 @@ def many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d):
     # Number of plots and x-labels for plots
     num_rows = 2
     num_columns = 3
-    feature_param_d = {'white_not_hispanic_fraction':
+    feature_param_d = {'asian_not_hispanic_fraction':
                        {'multiplier': 100,
-                        'xlabel': 'Percent white (not Hispanic)',
-                        'xlim_l': [0, 100]},
+                        'xlabel': 'Percent Asian (not Hispanic)',
+                        'xlim_l': [0, 50]},
                        'black_not_hispanic_fraction':
                        {'multiplier': 100,
                         'xlabel': 'Percent black (not Hispanic)',
                         'xlim_l': [0, 100]},
-                       'never_married':
-                       {'multiplier': 1,
-                        'xlabel': 'Percent never married',
-                        'xlim_l': [0, 100]},
-                       'in_poverty':
-                       {'multiplier': 1,
-                        'xlabel': 'Percent in poverty',
-                        'xlim_l': [0, 60]},
+                       'fraction_non_senior_citizens_without_insurance':
+                       {'multiplier': 100,
+                        'xlabel': 'Percent under 65 without insurance',
+                        'xlim_l': [0, 40]},
                        'median_age':
                        {'multiplier': 1,
                         'xlabel': 'Median age in years',
                         'xlim_l': [20, 70]},
-                       'foreign_born':
+                       'percent_foreign_born':
                        {'multiplier': 1,
                         'xlabel': 'Percent foreign-born',
-                        'xlim_l': [0, 60]}}
+                        'xlim_l': [0, 60]},
+                       'percent_in_poverty':
+                       {'multiplier': 1,
+                        'xlabel': 'Percent in poverty',
+                        'xlim_l': [0, 60]},
+                       'percent_never_married':
+                       {'multiplier': 1,
+                        'xlabel': 'Percent never married',
+                        'xlim_l': [0, 80]},
+                       'unemployment_rate_2012':
+                       {'multiplier': 1,
+                        'xlabel': 'Percent unemployed',
+                        'xlim_l': [0, 30]},
+                       'white_not_hispanic_fraction':
+                       {'multiplier': 100,
+                        'xlabel': 'Percent white (not Hispanic)',
+                        'xlim_l': [0, 100]}}
                        
     fig = plt.figure(figsize=(18, 8))
     for i_row in range(num_rows):
@@ -359,13 +371,14 @@ def many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d):
             x_feature_s = feature_by_r_value_s_l[-i_plot-1]
             x_feature_a = feature_param_d[x_feature_s]['multiplier'] * \
                 np.array(feature_d[x_feature_s])
-            y_feature_a = np.array(output_d[global_output_s])
+            y_feature_a = 100 * np.array(output_d[global_output_s])
             plotting.make_scatter_plot(ax, (x_feature_a,), (y_feature_a,),
                                        ((0.25, 0.25, 0.25),),
                                        plot_axes_at_zero_b=True, plot_regression_b=True)
             ax.set_xlabel(feature_param_d[x_feature_s]['xlabel'])
             ax.set_xlim(feature_param_d[x_feature_s]['xlim_l'])
-            ax.set_ylabel('% change in Obama vote share')
+            ax.set_ylabel('%GOP - %Dem, 2012 election')
+            ax.set_ylim([-100, 100])
     
     plt.savefig(os.path.join(config.output_path_s, 'many_scatter_plots.png'))
     
@@ -389,19 +402,20 @@ def many_shape_plots(feature_d, fips_d, shape_index_l, shape_l):
                                                    'multiplier': 0.001,
                                                    'title': \
                                         'Median household income (thousands of dollars)'},
+                       'percent_never_married': {'color_t_t': ((0.0, 0.5, 1.0),
+                                                               (1.0, 1.0, 1.0),
+                                                               (1.0, 0.5, 0.0)),
+                                            'color_value_t': (7, 20, 78),
+                                            'multiplier': 1,
+                                            'title': 'Percent never married'},
                        'sex_ratio': {'color_t_t': ((0.0, 0.5, 1.0),
                                                    (1.0, 1.0, 1.0),
                                                    (1.0, 0.5, 0.0)),
                                      'color_value_t': (70, 100, 330),
                                      'multiplier': 1,
-                                     'title': 'Males per 100 females'},
-                       'veterans': {'color_t_t': ((0.0, 0.5, 1.0),
-                                                  (1.0, 1.0, 1.0),
-                                                  (1.0, 0.5, 0.0)),
-                                    'color_value_t': (2, 13, 29),
-                                    'multiplier': 1,
-                                    'title': 'Percent veterans'}}
-    feature_order_s_l = ['median_age', 'median_household_income', 'sex_ratio', 'veterans']
+                                     'title': 'Males per 100 females'}}
+    feature_order_s_l = ['median_age', 'median_household_income',
+                         'percent_never_married', 'sex_ratio']
     
     fig = plt.figure(figsize=(16, 12))
     for i_row in range(num_rows):
@@ -455,7 +469,7 @@ def pearsons_r_heatmap(feature_d, feature_by_r_value_s_l):
     # Show image
     color_t_t = ((1, 0, 0), (1, 1, 1), (0, 1, 0))
     max_magnitude = 1
-    colormap = plotting.make_colormap(color_t_t)
+    colormap = plotting.make_colormap(color_t_t, (-max_magnitude, 0, max_magnitude))
     heatmap_ax.imshow(heat_map_a,
                       cmap=colormap,
                       aspect='equal',
@@ -533,8 +547,8 @@ def pearsons_r_single_features(feature_d, output_d):
     for l_feature, feature_s in enumerate(feature_by_r_value_s_l):
         
         # For unemployment_fraction_shift, highlight region in yellow
-        if feature_s == 'unemployment_fraction_shift':
-            plt.axhspan(l_feature+0.5, l_feature+1.5, facecolor=(1, 1, 0), alpha=0.5)
+#        if feature_s == 'unemployment_fraction_shift':
+#            plt.axhspan(l_feature+0.5, l_feature+1.5, facecolor=(1, 1, 0), alpha=0.5)
         
         ax.plot([-1, 1], [l_feature+0.5, l_feature+0.5], c=(0.75, 0.75, 0.75))
         ax.scatter([r_value_d[feature_s]], [l_feature+1], c=(0,0,0))
