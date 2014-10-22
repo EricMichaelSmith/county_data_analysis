@@ -62,10 +62,10 @@ def main(con, cur):
     # (1) Make sample shape plots of a few interesting features
     many_shape_plots(feature_d, fips_d, shape_index_l, shape_l)
     
-    # (2) Find and plot r-value of each feature with dem_fraction_shift
+    # (2) Find and plot r-value of each feature with the dependent output feature
     feature_by_r_value_s_l = pearsons_r_single_features(feature_d, output_d)
     
-    # (3) Make scatter plots of the features that are most highly correlated with dem_fraction_shift
+    # (3) Make scatter plots of the features that are most highly correlated with the output feature
     many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d)
     
     # (4) Plot pairwise r-values of all features in a heat map
@@ -120,7 +120,7 @@ def backward_stepwise_selection(feature_a, feature_s_l, output_a):
         
         while len(i_selected_l) > 1:
         
-            # Select the feature most correlated with dem_fraction_shift
+            # Select the feature most correlated with the output feature
             score_l = []
             for i_feature in i_selected_l:
                 i_model_feature_l = [i for i in i_selected_l if i != i_feature]
@@ -240,7 +240,7 @@ def forward_stepwise_selection(feature_a, feature_s_l, output_a):
         
         while len(i_unselected_l):
         
-            # Select the feature most correlated with dem_fraction_shift
+            # Select the feature most correlated with the outupt feature
             score_l = []
             for i_feature in i_unselected_l:
                 i_model_feature_l = i_selected_l + [i_feature]
@@ -312,7 +312,7 @@ def full_feature_ols(feature_a, ordered_feature_s_l, output_a):
     
     feature_df = pd.DataFrame(data=feature_a, columns=ordered_feature_s_l)
     feature_with_constant_df = sm.add_constant(feature_df)
-    output_df = pd.DataFrame(data=output_a, columns=['dem_fraction_shift'])
+    output_df = pd.DataFrame(data=output_a, columns=[global_output_s])
     ols_model = sm.OLS(output_df, feature_with_constant_df)
     ols_results = ols_model.fit()
     with open(os.path.join(config.output_path_s, 'full_feature_ols.txt'), 'w+') as f:
@@ -321,7 +321,7 @@ def full_feature_ols(feature_a, ordered_feature_s_l, output_a):
 
 
 def many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d):
-    """ Makes scatter plots of the six features most highly correlated with dem_fraction_shift """
+    """ Makes scatter plots of the six features most highly correlated with the output feature """
 
     # Number of plots and x-labels for plots
     num_rows = 2
@@ -359,7 +359,7 @@ def many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d):
             x_feature_s = feature_by_r_value_s_l[-i_plot-1]
             x_feature_a = feature_param_d[x_feature_s]['multiplier'] * \
                 np.array(feature_d[x_feature_s])
-            y_feature_a = np.array(output_d['dem_fraction_shift'])
+            y_feature_a = np.array(output_d[global_output_s])
             plotting.make_scatter_plot(ax, (x_feature_a,), (y_feature_a,),
                                        ((0.25, 0.25, 0.25),),
                                        plot_axes_at_zero_b=True, plot_regression_b=True)
@@ -483,7 +483,7 @@ def pearsons_r_heatmap(feature_d, feature_by_r_value_s_l):
     
 
 def pearsons_r_single_features(feature_d, output_d):
-    """ Find and plot r-value of each feature (in feature_d) with dem_fraction_shift (in output_d) """
+    """ Find and plot r-value of each feature (in feature_d) with the output feature (in output_d) """
     
     # Run linear regression on each feature separately
     r_value_d = {}
@@ -698,7 +698,7 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
         for i_method, method_s in enumerate(method_s_l):
             i_feature_a = np.array(range(len(coeff_l_d[method_s])))
             
-            # Sort features by the magnitude of the r-value of their correlation with dem_fraction_shift
+            # Sort features by the magnitude of the r-value of their correlation with the output feature
             sorted_abs_coeff_a = [abs(coeff_l_d[method_s][ordered_feature_s_l.index(feature_s)]) for feature_s in feature_by_r_value_s_l]
             
             bar_handle_l = ax.bar(left=i_feature_a-0.4+0.2*i_method,
