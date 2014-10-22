@@ -328,7 +328,7 @@ def many_scatter_plots(feature_d, feature_by_r_value_s_l, output_d):
     num_columns = 3
     feature_param_d = {'white_not_hispanic_fraction':
                        {'multiplier': 100,
-                        'xlabel': 'Pecent white (not Hispanic)',
+                        'xlabel': 'Percent white (not Hispanic)',
                         'xlim_l': [0, 100]},
                        'black_not_hispanic_fraction':
                        {'multiplier': 100,
@@ -731,7 +731,7 @@ def regression_confidence_interval_wrapper(index_l, feature1_a, feature2_a):
     
     
 # Name of feature used as dependent (output) variable in all regression models
-global_output_s = 'rep_fraction_spread'
+global_output_s = 'election2012_rep_fraction_spread'
 
 # Dictionary of all information needed for running unregularized regression models with various scores
 regression_d = {'Adjusted R-squared': {'attribute': 'rsquared_adj',

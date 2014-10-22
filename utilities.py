@@ -31,42 +31,49 @@ def add_derived_features(con, cur):
     
     
     ## Electoral
-    # election2008_percent_dem
+    # election2008_dem_fraction
     command_s = 'ALTER TABLE full ADD election2008_dem_fraction FLOAT(6, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
 SET election2008_dem_fraction = election2008_dem / election2008_total_votes;"""
     cur.execute(command_s)
 
-    # election2008_percent_rep
+    # election2012_dem_fraction
     command_s = 'ALTER TABLE full ADD election2008_rep_fraction FLOAT(6, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
 SET election2008_rep_fraction = election2008_rep / election2008_total_votes;"""
     cur.execute(command_s)
 
-    # election2012_percent_dem
+    # election2012_dem_fraction
     command_s = 'ALTER TABLE full ADD election2012_dem_fraction FLOAT(6, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
 SET election2012_dem_fraction = election2012_dem / election2012_total_votes;"""
     cur.execute(command_s)
 
-    # election2012_percent_rep
+    # election2012_rep_fraction
     command_s = 'ALTER TABLE full ADD election2012_rep_fraction FLOAT(6, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
 SET election2012_rep_fraction = election2012_rep / election2012_total_votes;"""
     cur.execute(command_s)
+
+    # election2012_rep_fraction_spread
+    command_s = 'ALTER TABLE full ADD election2012_rep_fraction_spread FLOAT(6, 5);'
+    cur.execute(command_s)
+    command_s = """UPDATE full
+SET election2012_rep_fraction_spread = election2012_rep_fraction - election2012_dem_fraction;"""
+    cur.execute(command_s)
     
-    # dem_shift
+    # dem_fraction_shift
     command_s = 'ALTER TABLE full ADD dem_fraction_shift FLOAT(8, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
 SET dem_fraction_shift = election2012_dem_fraction - election2008_dem_fraction;"""
     cur.execute(command_s)
 
-    # rep_shift
+    # rep_fraction_shift
     command_s = 'ALTER TABLE full ADD rep_fraction_shift FLOAT(8, 5);'
     cur.execute(command_s)
     command_s = """UPDATE full
