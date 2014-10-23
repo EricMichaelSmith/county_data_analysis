@@ -17,6 +17,8 @@ t: tuple
 Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 """
 
+import numpy as np
+
 import config
 reload(config)
 import regression
@@ -40,5 +42,9 @@ def main(con, cur):
     # Create feature and output variable arrays to be used in regression models
     feature_a, ordered_feature_s_l, output_a, no_none_features_b_a = \
         regression.create_arrays(feature_d, output_d)
+        
+    # Classify counties by political leaning
+    output_class_a = np.array([0 if i < 0 else 1 for i in output_a])
+    # 0: Democratic-leaning; 1: Republican-leaning
         
     # {{{}}}
