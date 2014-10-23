@@ -54,7 +54,10 @@ def main():
     utilities.add_derived_features(con, cur)
         
     # Run regression analysis
-    #regression.main(con, cur)
+#    regression.main(con, cur)
+        
+    # Run classifications
+#    classification.main(con, cur)
     
     # Wrap up
     con.commit()

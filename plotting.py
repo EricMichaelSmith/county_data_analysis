@@ -158,7 +158,7 @@ def make_colorbar(ax, color_t_t, color_value_t, label_s):
     
 def make_colormap(color_t_t, color_value_t):
     """ Given colors defined in color_t_t and values defined in color_value_t, creates a LinearSegmentedColormap object. Works with only three colors and corresponding values for now. """
-    
+        
     # Find how far the second color is from the first and third
     second_value_fraction = float(color_value_t[1] - color_value_t[0]) / \
         float(color_value_t[2] - color_value_t[0])

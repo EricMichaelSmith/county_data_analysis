@@ -4,7 +4,7 @@ Created on Thu Sep 18 08:50:58 2014
 
 @author: Eric
 
-Performs regression analysis in the county_data_analysis project.
+Performs regression analysis for the county_data_analysis project.
 
 Suffixes at the end of variable names:
 a: numpy array
@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
-#import pdb
 from scipy import stats
 from sklearn import cross_validation, feature_selection, linear_model, preprocessing
 import statsmodels.api as sm
@@ -392,13 +391,14 @@ def many_shape_plots(feature_d, fips_d, shape_index_l, shape_l):
     feature_param_d = {'median_age': {'color_t_t': ((0.0, 0.5, 1.0),
                                                     (1.0, 1.0, 1.0),
                                                     (1.0, 0.5, 0.0)),
-                                     'color_value_t': (20.0, 36.8, 65.0),
+                                     'color_value_t': (20.0, 36.8, 65.0), # Actual mean 38
                                      'multiplier': 1,
                                      'title': 'Median age (years)'},
                        'median_household_income': {'color_t_t': ((0.0, 0.5, 1.0),
                                                                  (1.0, 1.0, 1.0),
                                                                  (1.0, 0.5, 0.0)),
                                                    'color_value_t': (22, 51.9, 122),
+                                                   # Actual mean 51.9
                                                    'multiplier': 0.001,
                                                    'title': \
                                         'Median household income (thousands of dollars)'},
@@ -406,6 +406,7 @@ def many_shape_plots(feature_d, fips_d, shape_index_l, shape_l):
                                                                (1.0, 1.0, 1.0),
                                                                (1.0, 0.5, 0.0)),
                                             'color_value_t': (7, 20, 78),
+                                            # Actual mean 20
                                             'multiplier': 1,
                                             'title': 'Percent never married'},
                        'sex_ratio': {'color_t_t': ((0.0, 0.5, 1.0),
@@ -468,7 +469,7 @@ def pearsons_r_heatmap(feature_d, feature_by_r_value_s_l):
     
     # Show image
     color_t_t = ((1, 0, 0), (1, 1, 1), (0, 1, 0))
-    max_magnitude = 1
+    max_magnitude = 1.0
     colormap = plotting.make_colormap(color_t_t, (-max_magnitude, 0, max_magnitude))
     heatmap_ax.imshow(heat_map_a,
                       cmap=colormap,
@@ -490,7 +491,8 @@ def pearsons_r_heatmap(feature_d, feature_by_r_value_s_l):
     # Add colorbar
     color_ax = fig.add_axes([0.25, 0.06, 0.50, 0.02])
     color_bar_s = "Correlation strength (Pearson's r)"
-    plotting.make_colorbar(color_ax, max_magnitude, color_t_t, color_bar_s)
+    plotting.make_colorbar(color_ax, color_t_t, (-max_magnitude, 0, max_magnitude),
+                           color_bar_s)
     
     plt.savefig(os.path.join(config.output_path_s, 'pearsons_r_heatmap.png'))
 
@@ -570,7 +572,7 @@ def pearsons_r_single_features(feature_d, output_d):
     ax.set_position([0.43, 0.05, 0.52, 0.93])
     ax.set_xlim([-1, 1])
     ax.set_xticks(np.arange(-1, 1.25, 0.25).tolist())
-    ax.set_xlabel("""Correlation strength (Pearson's r) between feature and Obama vote shift""")
+    ax.set_xlabel("""Correlation strength (Pearson's r) between feature and %GOP - %Dem""")
     ax.set_ylim([0.5, num_features+0.5])
     ax.set_yticks(np.arange(1, num_features+1, 1).tolist())
 #    feature_by_r_value_s_l = [feature_s + ' (+%0.2f)' % sorted_r_value_l[i]
@@ -639,7 +641,7 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
     
     with open(os.path.join(config.output_path_s, 'regularized_regression.txt'), 'w+') as f:
         
-        max_iter = 1e6
+        max_iter = 1e8
         
         if standardize_b:
             feature_a = preprocessing.scale(feature_raw_a.astype(float))
@@ -659,6 +661,7 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
         print('Intercept: %0.5g' % clf.intercept_, file=f)
         print_coefficients(clf.coef_, ordered_feature_s_l, f)
         coeff_l_d['Ordinary least squares'] = clf.coef_
+        print('Ordinary least squares complete.')
     
         # Ridge regression with generalized cross-validation
         alpha_l = np.logspace(-15, 5, num=11).tolist()
@@ -670,6 +673,7 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
         print('Intercept: %0.5g' % clf.intercept_, file=f)
         print_coefficients(clf.coef_, ordered_feature_s_l, f)
         coeff_l_d['Ridge regularization'] = clf.coef_
+        print('Ridge regularization complete.')
         
         # Lasso regression with generalized cross-validation
         alpha_l = np.logspace(-15, 5, num=11).tolist()
@@ -681,6 +685,7 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
         print('Intercept: %0.5g' % clf.intercept_, file=f)
         print_coefficients(clf.coef_, ordered_feature_s_l, f)
         coeff_l_d['Lasso regularization'] = clf.coef_
+        print('Lasso regularization complete.')
         
         # Elastic net regression with generalized cross-validation
         l1_ratio_l = [.1, .5, .7, .9, .95, .99, 1]
@@ -695,6 +700,7 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
         print('Intercept: %0.5g' % clf.intercept_, file=f)
         print_coefficients(clf.coef_, ordered_feature_s_l, f)
         coeff_l_d['Elastic net regularization'] = clf.coef_
+        print('Elastic net regularization complete.')
 
         
         ## Plot a bar graph of the results
@@ -729,7 +735,7 @@ def regularized_regression(feature_raw_a, ordered_feature_s_l, output_a,
         ax.set_yscale('log')
         ax.set_ylabel('Regression coefficient (standardized)')
         ax.legend([handle_l[0] for handle_l in bar_handle_l_l], method_s_l,
-                  loc='lower right', bbox_to_anchor=(1.00, -1.25))
+                  loc='lower right', bbox_to_anchor=(1.00, -1.25), fontsize='small')
 
         plt.savefig(os.path.join(config.output_path_s, 'regularized_regression.png'))
     
