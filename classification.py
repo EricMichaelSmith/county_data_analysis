@@ -46,5 +46,5 @@ def main(con, cur):
     # Classify counties by political leaning
     output_class_a = np.array([0 if i < 0 else 1 for i in output_a])
     # 0: Democratic-leaning; 1: Republican-leaning
-        
+            
     # {{{}}}
