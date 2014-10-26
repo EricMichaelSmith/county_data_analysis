@@ -80,14 +80,14 @@ def create_arrays(con, cur):
 def forward_stepwise_selection(stand_feature_a, feature_s_l, output_class_a):
     """ Run forward stepwise feature selection in order to determine the number and ranking of features most predictive of a county voting Democratic or Republican in 2012. """
     
-    # Define classifiers
-    classifier_d = {'Logistic regression': LogisticRegression(C=1e5),
+    # Define classifiers: the parameter values are calculated from what gives the best accuracy with CV, testing all orders of magnitude, when all features are present
+    classifier_d = {'Logistic regression': LogisticRegression(C=10),
                     'LDA': LDA(), 
                     'QDA': QDA(), 
                     'Naive Bayes': GaussianNB(),
-                    'Linear SVM': SVC(C=0.8, kernel='linear'), 
-                    'RBF SVM': SVC(C=1e5, kernel='rbf'),
-                    'k nearest neighbors': KNeighborsClassifier(n_neighbors=3)}
+                    'Linear SVM': SVC(C=1, kernel='linear'), 
+                    'RBF SVM': SVC(C=1, kernel='rbf'),
+                    'k nearest neighbors': KNeighborsClassifier(n_neighbors=10)}
         
     # Create a dictionary of the error rate of each model as features are added
     accuracy_d = {}
@@ -115,6 +115,7 @@ def forward_stepwise_selection(stand_feature_a, feature_s_l, output_class_a):
                 all_cv_scores_l = cross_val_score(classifier, explanatory_a,
                                                   output_class_a, cv=10)
                 accuracy_l.append(sum(all_cv_scores_l)/float(len(all_cv_scores_l)))
+#                print('        Testing %s.' % feature_s_l[i_feature])
                 
             i_most_correlated_feature = i_unselected_l[accuracy_l.index(max(accuracy_l))]
             
@@ -135,8 +136,8 @@ def forward_stepwise_selection(stand_feature_a, feature_s_l, output_class_a):
     classifier_s_l = ['Logistic regression', 'LDA', 'Linear SVM']
     for i_classifier, classifier_s in enumerate(classifier_s_l):
         ax = fig.add_axes([0.04+0.33*i_classifier, 0.45, 0.25, 0.52])
-        plotting.plot_line_score_of_features(ax, classifier_d[classifier_s]['feature_s_l'],
-                                             classifier_d[classifier_s]['accuracy_l'],
+        plotting.plot_line_score_of_features(ax, accuracy_d[classifier_s]['feature_s_l'],
+                                             accuracy_d[classifier_s]['accuracy_l'],
                                              extremum_func=max,
                                              is_backward_selection_b=False,
                                              ylabel_s=classifier_s)
@@ -148,8 +149,8 @@ def forward_stepwise_selection(stand_feature_a, feature_s_l, output_class_a):
     classifier_s_l = ['QDA', 'Naive Bayes', 'AIC', 'BIC']
     for i_classifier, classifier_s in enumerate(classifier_s_l):
         ax = fig.add_axes([0.04+0.25*i_classifier, 0.45, 0.19, 0.52])
-        plotting.plot_line_score_of_features(ax, classifier_d[classifier_s]['feature_s_l'],
-                                             classifier_d[classifier_s]['accuracy_l'],
+        plotting.plot_line_score_of_features(ax, accuracy_d[classifier_s]['feature_s_l'],
+                                             accuracy_d[classifier_s]['accuracy_l'],
                                              extremum_func=max,
                                              is_backward_selection_b=False,
                                              ylabel_s=classifier_s)
