@@ -20,6 +20,7 @@ Underscores indicate chaining: for instance, "foo_t_t" is a tuple of tuples
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import pdb
 from sklearn.cross_validation import cross_val_score
 from sklearn.lda import LDA
 from sklearn.linear_model import LogisticRegression
@@ -47,7 +48,10 @@ def main(con, cur):
     feature_a, stand_feature_a, feature_s_l, output_class_a = create_arrays(con, cur)
          
     # Run forward stepwise selection classification models
-    forward_stepwise_selection(stand_feature_a, feature_s_l, output_class_a)
+#    forward_stepwise_selection(stand_feature_a, feature_s_l, output_class_a)
+    
+    # Plot the two classes projected onto two dimensions with maximal inter-class variance as calculated with LDA
+    plot_class_separation(stand_feature_a, feature_s_l, output_class_a)
 
 
 
@@ -156,3 +160,23 @@ def forward_stepwise_selection(stand_feature_a, feature_s_l, output_class_a):
                                              ylabel_s=classifier_s)
     plt.savefig(os.path.join(config.output_path_s,
                              'classification__forward_stepwise_selection__nonlinear.png'))
+                             
+                             
+                             
+def plot_class_separation(stand_feature_a, feature_s_l, output_class_a):
+    """ Plots the two classes projected onto two dimensions with maximal inter-class variance as calculated with LDA """
+    
+    lda = LDA(n_components=5)
+    feature_2D_a = lda.fit(stand_feature_a, output_class_a).transform(stand_feature_a)
+    pdb.set_trace()
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    for color, i_class, class_s in zip('br', [0, 1], ['More Obama votes', 'More Romney votes']):
+        ax.scatter(feature_2D_a[output_class_a == i_class, 0],
+                   feature_2D_a[output_class_a == i_class, 1],
+                   c=color, label=class_s)
+    ax.legend()
+    ax.title('Separation between Dem and GOP voting counties (LDA)')
+    plt.savefig(os.path.join(config.output_path_s,
+                             'classification__lda_class_separation.png'))
