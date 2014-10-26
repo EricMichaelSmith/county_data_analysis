@@ -146,7 +146,7 @@ def forward_stepwise_selection(stand_feature_a, feature_s_l, output_class_a):
                                          
     # Plot nonlinear classifiers
     fig = plt.figure(figsize=(32, 10))
-    classifier_s_l = ['QDA', 'Naive Bayes', 'AIC', 'BIC']
+    classifier_s_l = ['QDA', 'Naive Bayes', 'RBF SVM', 'k nearest neighbors']
     for i_classifier, classifier_s in enumerate(classifier_s_l):
         ax = fig.add_axes([0.04+0.25*i_classifier, 0.45, 0.19, 0.52])
         plotting.plot_line_score_of_features(ax, accuracy_d[classifier_s]['feature_s_l'],
