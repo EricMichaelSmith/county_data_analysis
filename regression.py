@@ -57,6 +57,9 @@ def main(con, cur):
     # Load fips data and shape data for maps
     fips_d = selecting.select_fields(con, cur, ['fips_fips'], output_type='dictionary')
     shape_index_l, shape_l = election2008.read_data()[1:]
+    
+    # (0) Plot Obama vs. Romney vote percentage
+    election2012_shape_plot(feature_d, output_d, fips_d, shape_index_l, shape_l)
 
     # (1) Make sample shape plots of a few interesting features
     many_shape_plots(feature_d, fips_d, shape_index_l, shape_l)
@@ -217,6 +220,28 @@ def create_arrays(feature_d, output_d):
 #        print('%s: %d' % (feature_s, num_none_per_feature_b_a[l_feature]))
     
     return (feature_a, ordered_feature_s_l, output_a, no_none_features_b_a)
+    
+    
+    
+def election2012_shape_plot(feature_d, output_d, fips_d, shape_index_l, shape_l):
+    """ Plots a county-level map of percentage of votes for Obama vs. Romney. """
+    
+    fig = plt.figure(figsize=(11, 6))
+    ax = fig.add_subplot(1, 1, 1)
+    value_sr = pd.Series(data=output_d[global_output_s], index=fips_d['fips_fips'])
+    color_t_t=((0,0,1),(0.5,0,0.5),(1,0,0))
+    plotting.make_shape_plot(fig=fig,
+                             value_sr=100*value_sr,
+                             shape_index_l=shape_index_l,
+                             shape_l=shape_l,
+                             color_type_s='unbalanced_gradient',
+                             color_t_t=color_t_t,
+                             ax=ax,
+                             colorbar_s='%GOP - %Dem, 2012 election',
+                             colorbar_ax=fig.add_axes([0.25, 0.10, 0.50, 0.05]),
+                             color_value_t=(-100,0,100))
+
+    plt.savefig(os.path.join(config.output_path_s, 'election2012_shape_plot.png'))
     
     
     
