@@ -570,7 +570,7 @@ def pearsons_r_single_features(feature_d, output_d):
     ax = plt.figure(figsize=(10, 0.5*len(feature_by_r_value_s_l))).add_subplot(1, 1, 1)
     
     # Plot the point and error bar, as well as guide lines
-    ax.plot([0, 0], [0, num_features+1], c=(1, 0, 0))
+    ax.plot([0, 0], [0, num_features+1], c=(0, 0, 0))
     for l_feature, feature_s in enumerate(feature_by_r_value_s_l):
         
         # For unemployment_fraction_shift, highlight region in yellow
@@ -585,10 +585,10 @@ def pearsons_r_single_features(feature_d, output_d):
                     xerr=np.array([[width_to_left], [width_to_right]]),
                     ecolor=(0,0,0))
         if r_value_d[feature_s] >= 0:
-            text_color_t = (0, 0.5, 0)
+            text_color_t = (1, 0, 0)
             text_s = '+%0.2f' % r_value_d[feature_s]
         else:
-            text_color_t = (0.5, 0, 0)
+            text_color_t = (0, 0, 1)
             text_s = '%0.2f' % r_value_d[feature_s]
         ax.text(0.90, l_feature+1, text_s, color=text_color_t,
                 horizontalalignment='right', verticalalignment='center')
